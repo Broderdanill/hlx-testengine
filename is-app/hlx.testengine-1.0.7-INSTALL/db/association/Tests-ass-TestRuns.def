@@ -1,0 +1,30 @@
+begin association definition
+   name           : hlx.cypress:Tests-ass-TestRuns
+   definition     : {
+   definition     :   "version" : null,
+   definition     :   "lastUpdateTime" : 1745740100000,
+   definition     :   "lastChangedBy" : "dice",
+   definition     :   "owner" : "dice",
+   definition     :   "name" : "hlx.cypress:Tests-ass-TestRuns",
+   definition     :   "tags" : null,
+   definition     :   "description" : null,
+   definition     :   "overlayGroupId" : "1",
+   definition     :   "scope" : "BUNDLE",
+   definition     :   "internal" : false,
+   definition     :   "guid" : "IDGE6OVGBLY1IASV3FAFSV3FAF2AG7",
+   definition     :   "nodeAId" : "hlx.cypress:Tests",
+   definition     :   "nodeBId" : "hlx.cypress:TestRuns",
+   definition     :   "nodeAName" : null,
+   definition     :   "nodeBName" : null,
+   definition     :   "shouldCascadeDelete" : true,
+   definition     :   "cardinality" : "ONE_TO_MANY",
+   definition     :   "nodeAKeys" : [ 379 ],
+   definition     :   "nodeBKeys" : [ 536870915 ],
+   definition     :   "isEnabled" : true,
+   definition     :   "overlayDescriptor" : {
+   definition     :     "parentOverlayGroupId" : null
+   definition     :   },
+   definition     :   "allowOverlay" : false,
+   definition     :   "nodeAModality" : "OPTIONAL"
+   definition     : }
+end

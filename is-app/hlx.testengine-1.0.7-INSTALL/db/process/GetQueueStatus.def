@@ -1,0 +1,182 @@
+begin process definition
+   name           : hlx.cypress:GetQueueStatus
+   definition     : {
+   definition     :   "version" : null,
+   definition     :   "lastUpdateTime" : 1745835187000,
+   definition     :   "lastChangedBy" : "dice",
+   definition     :   "owner" : "dice",
+   definition     :   "name" : "hlx.cypress:GetQueueStatus",
+   definition     :   "tags" : null,
+   definition     :   "description" : null,
+   definition     :   "overlayGroupId" : "1",
+   definition     :   "scope" : "BUNDLE",
+   definition     :   "internal" : false,
+   definition     :   "guid" : "rx-34e294ea-a540-4e5b-819f-8f8801f565eb",
+   definition     :   "flowElements" : [ {
+   definition     :     "resourceType" : "com.bmc.arsys.rx.services.process.domain.StartEventDefinition",
+   definition     :     "lastUpdateTime" : 1745835187000,
+   definition     :     "lastChangedBy" : "dice",
+   definition     :     "owner" : "dice",
+   definition     :     "name" : "Start",
+   definition     :     "tags" : null,
+   definition     :     "description" : null,
+   definition     :     "overlayGroupId" : null,
+   definition     :     "internal" : false,
+   definition     :     "guid" : "rx-d22bb395-cde3-45d5-a29e-30d337e8b33a"
+   definition     :   }, {
+   definition     :     "resourceType" : "com.bmc.arsys.rx.services.process.domain.SequenceFlowDefinition",
+   definition     :     "lastUpdateTime" : 1745835187000,
+   definition     :     "lastChangedBy" : "dice",
+   definition     :     "owner" : "dice",
+   definition     :     "name" : "Sequence Flow",
+   definition     :     "tags" : null,
+   definition     :     "description" : null,
+   definition     :     "overlayGroupId" : null,
+   definition     :     "internal" : false,
+   definition     :     "guid" : "rx-ccd25b80-8e9c-4231-8276-7199763f2513",
+   definition     :     "sourceNode" : "rx-d22bb395-cde3-45d5-a29e-30d337e8b33a",
+   definition     :     "targetNode" : "rx-357002c8-995f-4fb0-9aae-4d1a00fd45b8",
+   definition     :     "condition" : ""
+   definition     :   }, {
+   definition     :     "resourceType" : "com.bmc.arsys.rx.services.process.domain.SequenceFlowDefinition",
+   definition     :     "lastUpdateTime" : 1745835187000,
+   definition     :     "lastChangedBy" : "dice",
+   definition     :     "owner" : "dice",
+   definition     :     "name" : "Sequence Flow",
+   definition     :     "tags" : null,
+   definition     :     "description" : null,
+   definition     :     "overlayGroupId" : null,
+   definition     :     "internal" : false,
+   definition     :     "guid" : "rx-4e4ee3f2-a8c6-474b-b8be-55ef9ed2a040",
+   definition     :     "sourceNode" : "rx-f09c718a-f046-4bc8-8776-ba90363b3eb4",
+   definition     :     "targetNode" : "rx-ff456ef3-ac0e-4f45-b1ed-dd1893e4b139",
+   definition     :     "condition" : ""
+   definition     :   }, {
+   definition     :     "resourceType" : "com.bmc.arsys.rx.services.process.domain.EndEventDefinition",
+   definition     :     "lastUpdateTime" : 1745835187000,
+   definition     :     "lastChangedBy" : "dice",
+   definition     :     "owner" : "dice",
+   definition     :     "name" : "End",
+   definition     :     "tags" : null,
+   definition     :     "description" : null,
+   definition     :     "overlayGroupId" : null,
+   definition     :     "internal" : false,
+   definition     :     "guid" : "rx-ff456ef3-ac0e-4f45-b1ed-dd1893e4b139",
+   definition     :     "event" : null
+   definition     :   }, {
+   definition     :     "resourceType" : "com.bmc.arsys.rx.services.process.domain.ServiceTaskDefinition",
+   definition     :     "lastUpdateTime" : 1745835187000,
+   definition     :     "lastChangedBy" : "dice",
+   definition     :     "owner" : "dice",
+   definition     :     "name" : "Web Request",
+   definition     :     "tags" : null,
+   definition     :     "description" : null,
+   definition     :     "overlayGroupId" : null,
+   definition     :     "internal" : false,
+   definition     :     "guid" : "rx-357002c8-995f-4fb0-9aae-4d1a00fd45b8",
+   definition     :     "multiInstanceLoopDefinition" : null,
+   definition     :     "actionTypeName" : "WebRequest",
+   definition     :     "inputMap" : [ {
+   definition     :       "assignTarget" : "connectionTarget",
+   definition     :       "expression" : "\"hlx-cypress-svc\""
+   definition     :     }, {
+   definition     :       "assignTarget" : "webApiTarget",
+   definition     :       "expression" : "\"966b49b0-baf1-41f2-b0e5-8d69345297c6\""
+   definition     :     }, {
+   definition     :       "assignTarget" : "requestTarget",
+   definition     :       "expression" : "\"rx-0f938003-f16d-4871-ac4a-992cd08b8b01\""
+   definition     :     } ],
+   definition     :     "outputMap" : [ {
+   definition     :       "assignTarget" : "536870912",
+   definition     :       "expression" : "${actionResult.rx-357002c8-995f-4fb0-9aae-4d1a00fd45b8.output}"
+   definition     :     } ],
+   definition     :     "runAsUser" : null
+   definition     :   }, {
+   definition     :     "resourceType" : "com.bmc.arsys.rx.services.process.domain.ServiceTaskDefinition",
+   definition     :     "lastUpdateTime" : 1745835187000,
+   definition     :     "lastChangedBy" : "dice",
+   definition     :     "owner" : "dice",
+   definition     :     "name" : "Update Record",
+   definition     :     "tags" : null,
+   definition     :     "description" : "x",
+   definition     :     "overlayGroupId" : null,
+   definition     :     "internal" : false,
+   definition     :     "guid" : "rx-f09c718a-f046-4bc8-8776-ba90363b3eb4",
+   definition     :     "multiInstanceLoopDefinition" : null,
+   definition     :     "actionTypeName" : "updateRecord",
+   definition     :     "inputMap" : [ {
+   definition     :       "assignTarget" : "recordDefinitionName",
+   definition     :       "expression" : "\"IDGBGPZNA83S9ASV50OFSV50OFK4FX\""
+   definition     :     }, {
+   definition     :       "assignTarget" : "recordID",
+   definition     :       "expression" : "\"AGGBGPZNA83S9ASV50RBSV50RBK43H\""
+   definition     :     }, {
+   definition     :       "assignTarget" : "values[\"536870914\"]",
+   definition     :       "expression" : "${processContext.536870912.queueItems[0].TestName}"
+   definition     :     }, {
+   definition     :       "assignTarget" : "values[\"536870915\"]",
+   definition     :       "expression" : "${processContext.536870912.queueItems[0].TestRunId}"
+   definition     :     }, {
+   definition     :       "assignTarget" : "values[\"536870916\"]",
+   definition     :       "expression" : "${processContext.536870912.isProcessing}"
+   definition     :     }, {
+   definition     :       "assignTarget" : "values[\"536870913\"]",
+   definition     :       "expression" : "${processContext.536870912.queueLength}"
+   definition     :     } ],
+   definition     :     "outputMap" : [ ],
+   definition     :     "runAsUser" : null
+   definition     :   }, {
+   definition     :     "resourceType" : "com.bmc.arsys.rx.services.process.domain.SequenceFlowDefinition",
+   definition     :     "lastUpdateTime" : 1745835187000,
+   definition     :     "lastChangedBy" : "dice",
+   definition     :     "owner" : "dice",
+   definition     :     "name" : "Sequence Flow",
+   definition     :     "tags" : null,
+   definition     :     "description" : null,
+   definition     :     "overlayGroupId" : null,
+   definition     :     "internal" : false,
+   definition     :     "guid" : "rx-99c2a8d0-9ff8-47b3-80e8-8bbf61b49b99",
+   definition     :     "sourceNode" : "rx-357002c8-995f-4fb0-9aae-4d1a00fd45b8",
+   definition     :     "targetNode" : "rx-f09c718a-f046-4bc8-8776-ba90363b3eb4",
+   definition     :     "condition" : ""
+   definition     :   } ],
+   definition     :   "inputParams" : [ ],
+   definition     :   "outputParams" : [ {
+   definition     :     "resourceType" : "com.bmc.arsys.rx.services.process.domain.record.ObjectFieldDefinition",
+   definition     :     "lastUpdateTime" : 1745835187000,
+   definition     :     "lastChangedBy" : "dice",
+   definition     :     "owner" : "dice",
+   definition     :     "name" : "json",
+   definition     :     "tags" : null,
+   definition     :     "description" : "",
+   definition     :     "overlayGroupId" : null,
+   definition     :     "internal" : false,
+   definition     :     "id" : 536870912,
+   definition     :     "fieldOption" : "OPTIONAL",
+   definition     :     "permissions" : null,
+   definition     :     "storageTypeClass" : "com.bmc.arsys.rx.services.record.domain.CharacterFieldStorageType",
+   definition     :     "fieldTypeName" : "com.bmc.arsys.rx.services.process.domain.record.ObjectFieldType",
+   definition     :     "isInherited" : false,
+   definition     :     "explicitPermissions" : null,
+   definition     :     "overlayDescriptor" : null,
+   definition     :     "fieldMapping" : null,
+   definition     :     "allowPermissionsOverlay" : true,
+   definition     :     "allowOtherPropertiesOverlay" : true,
+   definition     :     "auditOption" : null,
+   definition     :     "allowPermissionsEdit" : false,
+   definition     :     "documentDefinitionName" : "IDGE6OVGBLY1IASV3DUVSV3DUV1X9N",
+   definition     :     "anyUserAllowedToSubmit" : false
+   definition     :   } ],
+   definition     :   "localVariables" : [ ],
+   definition     :   "contextKeyParam" : null,
+   definition     :   "isEnabled" : true,
+   definition     :   "permissions" : [ ],
+   definition     :   "layout" : "{\"cells\":[{\"id\":\"d22bb395-cde3-45d5-a29e-30d337e8b33a\",\"position\":{\"x\":50,\"y\":375},\"size\":{\"width\":30,\"height\":30},\"type\":\"rx.StartEvent\",\"z\":1,\"attrs\":{\".label\":{\"text\":\"\"}}},{\"flowType\":\"normal\",\"id\":\"ccd25b80-8e9c-4231-8276-7199763f2513\",\"labels\":[{\"attrs\":{\"text\":{\"text\":\"\"}},\"position\":\"0.5\"}],\"source\":{\"id\":\"d22bb395-cde3-45d5-a29e-30d337e8b33a\"},\"target\":{\"id\":\"357002c8-995f-4fb0-9aae-4d1a00fd45b8\"},\"type\":\"rx.SequenceFlow\",\"z\":24},{\"flowType\":\"normal\",\"id\":\"4e4ee3f2-a8c6-474b-b8be-55ef9ed2a040\",\"labels\":[{\"attrs\":{\"text\":{\"text\":\"\"}},\"position\":\"0.5\"}],\"source\":{\"id\":\"f09c718a-f046-4bc8-8776-ba90363b3eb4\"},\"target\":{\"id\":\"ff456ef3-ac0e-4f45-b1ed-dd1893e4b139\"},\"type\":\"rx.SequenceFlow\",\"z\":27},{\"id\":\"ff456ef3-ac0e-4f45-b1ed-dd1893e4b139\",\"position\":{\"x\":900,\"y\":375},\"size\":{\"width\":30,\"height\":30},\"type\":\"rx.EndEvent\",\"z\":2,\"attrs\":{\".label\":{\"text\":\"\"}}},{\"content\":\"Web Request\",\"id\":\"357002c8-995f-4fb0-9aae-4d1a00fd45b8\",\"position\":{\"x\":190,\"y\":360},\"size\":{\"width\":90,\"height\":60},\"type\":\"rx.WebRequest\",\"z\":23},{\"content\":\"Update Record\",\"id\":\"f09c718a-f046-4bc8-8776-ba90363b3eb4\",\"position\":{\"x\":505,\"y\":360},\"size\":{\"width\":90,\"height\":60},\"type\":\"rx.ProcessActions.updateRecord\",\"z\":25},{\"flowType\":\"normal\",\"id\":\"99c2a8d0-9ff8-47b3-80e8-8bbf61b49b99\",\"labels\":[{\"attrs\":{\"text\":{\"text\":\"\"}},\"position\":\"0.5\"}],\"source\":{\"id\":\"357002c8-995f-4fb0-9aae-4d1a00fd45b8\"},\"target\":{\"id\":\"f09c718a-f046-4bc8-8776-ba90363b3eb4\"},\"type\":\"rx.SequenceFlow\",\"z\":26}]}",
+   definition     :   "artifacts" : [ ],
+   definition     :   "runAsUser" : false,
+   definition     :   "synchronous" : true,
+   definition     :   "overlayDescriptor" : null,
+   definition     :   "allowOverlay" : false,
+   definition     :   "localizableStrings" : null
+   definition     : }
+end

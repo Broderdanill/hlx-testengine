@@ -1,0 +1,43 @@
+begin rule definition
+   name           : hlx.cypress:TestResults-Check-TestSuiteRun-Completed
+   definition     : {
+   definition     :   "version" : null,
+   definition     :   "lastUpdateTime" : 1745846601000,
+   definition     :   "lastChangedBy" : "dice",
+   definition     :   "owner" : "dice",
+   definition     :   "name" : "hlx.cypress:TestResults-Check-TestSuiteRun-Completed",
+   definition     :   "tags" : null,
+   definition     :   "description" : null,
+   definition     :   "overlayGroupId" : "1",
+   definition     :   "scope" : "BUNDLE",
+   definition     :   "internal" : false,
+   definition     :   "guid" : "IDGBGPZNA83S9ASV57IVSV57IVKUX8",
+   definition     :   "triggerEvent" : {
+   definition     :     "resourceType" : "com.bmc.arsys.rx.services.rule.domain.RecordTriggerEvent",
+   definition     :     "eventTypes" : [ "ON_CREATE" ],
+   definition     :     "executionOrder" : 700
+   definition     :   },
+   definition     :   "isEnabled" : true,
+   definition     :   "recordDefinitionNames" : [ "hlx.cypress:TestResults" ],
+   definition     :   "qualification" : {
+   definition     :     "name" : null,
+   definition     :     "expression" : "(${ruleContext.536870927} != $\\NULL$) AND ((${ruleContext.536870915} = \"failed\") OR (${ruleContext.536870915} = \"passed\"))"
+   definition     :   },
+   definition     :   "actions" : [ {
+   definition     :     "resourceType" : "com.bmc.arsys.rx.services.rule.domain.StartProcessInstanceAction",
+   definition     :     "name" : "Start Process",
+   definition     :     "processDefinitionName" : "rx-c0714f8f-651c-4c2b-92c8-0833020b45bf",
+   definition     :     "sampleProcessDefinitionName" : null,
+   definition     :     "inputMap" : [ {
+   definition     :       "assignTarget" : "536870914",
+   definition     :       "expression" : "${ruleContext.536870927}"
+   definition     :     } ],
+   definition     :     "outputMap" : [ ]
+   definition     :   } ],
+   definition     :   "overlayDescriptor" : null,
+   definition     :   "allowOverlay" : false,
+   definition     :   "localizableStrings" : null,
+   definition     :   "numberOfAvailablePools" : 16,
+   definition     :   "saaSAdminOnly" : false
+   definition     : }
+end

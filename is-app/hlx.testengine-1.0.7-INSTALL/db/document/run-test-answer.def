@@ -1,0 +1,19 @@
+begin document definition
+   name           : hlx.cypress:run-test-answer
+   definition     : {
+   definition     :   "version" : null,
+   definition     :   "lastUpdateTime" : 1745732609000,
+   definition     :   "lastChangedBy" : "dice",
+   definition     :   "owner" : "dice",
+   definition     :   "name" : "hlx.cypress:run-test-answer",
+   definition     :   "tags" : null,
+   definition     :   "description" : null,
+   definition     :   "overlayGroupId" : "1",
+   definition     :   "scope" : "BUNDLE",
+   definition     :   "internal" : false,
+   definition     :   "guid" : "IDGE6OVGBLY1IASV3DW7SV3DW71XMZ",
+   definition     :   "allowOverlay" : false,
+   definition     :   "overlayDescriptor" : null,
+   definition     :   "documentSchema" : "{\n  \"name\": \"QueueMessage\",\n  \"type\": \"Document\",\n  \"fields\": [\n    {\n      \"name\": \"message\",\n      \"type\": \"String\"\n    }\n  ]\n}\n"
+   definition     : }
+end

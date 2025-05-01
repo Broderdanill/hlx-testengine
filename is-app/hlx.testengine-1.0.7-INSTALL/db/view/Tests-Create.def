@@ -1,0 +1,317 @@
+begin view definition
+   name           : hlx.cypress:Tests-Create
+   definition     : {
+   definition     :   "version" : null,
+   definition     :   "lastUpdateTime" : 1745741675000,
+   definition     :   "lastChangedBy" : "dice",
+   definition     :   "owner" : "dice",
+   definition     :   "name" : "hlx.cypress:Tests-Create",
+   definition     :   "tags" : null,
+   definition     :   "description" : null,
+   definition     :   "overlayGroupId" : "1",
+   definition     :   "scope" : "BUNDLE",
+   definition     :   "internal" : false,
+   definition     :   "guid" : "3eecccc2-d387-49bb-8645-f11ada5d3114",
+   definition     :   "layout" : "{\"outlets\":[{\"name\":\"header\",\"height\":60,\"columns\":[{\"children\":[]}]},{\"name\":\"DEFAULT\",\"columns\":[{\"children\":[\"9224971e-6b76-4371-9ce8-124d289abc62\",\"5c97c147-3e5f-455e-8d37-7091101f672e\"]}]}]}",
+   definition     :   "inputParams" : [ ],
+   definition     :   "outputParams" : [ ],
+   definition     :   "componentDefinitions" : [ {
+   definition     :     "resourceType" : "com.bmc.arsys.rx.services.view.domain.ContainerViewComponentDefinition",
+   definition     :     "lastUpdateTime" : 1745741675000,
+   definition     :     "lastChangedBy" : "dice",
+   definition     :     "owner" : "dice",
+   definition     :     "name" : "5c97c147-3e5f-455e-8d37-7091101f672e",
+   definition     :     "tags" : null,
+   definition     :     "description" : null,
+   definition     :     "overlayGroupId" : "1",
+   definition     :     "internal" : false,
+   definition     :     "guid" : "5c97c147-3e5f-455e-8d37-7091101f672e",
+   definition     :     "type" : "rx-button-bar",
+   definition     :     "propertiesByName" : {
+   definition     :       "availableOnDevices" : "[\"desktop\",\"tablet\",\"mobile\"]",
+   definition     :       "styles" : null,
+   definition     :       "alignment" : "left",
+   definition     :       "hidden" : "0"
+   definition     :     },
+   definition     :     "permissions" : [ {
+   definition     :       "ownerId" : {
+   definition     :         "value" : 0,
+   definition     :         "type" : "GROUP",
+   definition     :         "name" : "Public"
+   definition     :       },
+   definition     :       "type" : "VISIBLE"
+   definition     :     } ],
+   definition     :     "layout" : "{\"outlets\":[{\"name\":\"DEFAULT\",\"columns\":[{\"children\":[\"ccb1eef9-8084-40dc-9c99-d7e2e346f41b\",\"28007c78-dc7a-430e-b3e1-97c07bf7fc01\"]}]}]}",
+   definition     :     "componentDefinitions" : [ {
+   definition     :       "resourceType" : "com.bmc.arsys.rx.services.view.domain.ContainerViewComponentDefinition",
+   definition     :       "lastUpdateTime" : 1745741675000,
+   definition     :       "lastChangedBy" : "dice",
+   definition     :       "owner" : "dice",
+   definition     :       "name" : "28007c78-dc7a-430e-b3e1-97c07bf7fc01",
+   definition     :       "tags" : null,
+   definition     :       "description" : null,
+   definition     :       "overlayGroupId" : "1",
+   definition     :       "internal" : false,
+   definition     :       "guid" : "28007c78-dc7a-430e-b3e1-97c07bf7fc01",
+   definition     :       "type" : "rx-action-button",
+   definition     :       "propertiesByName" : {
+   definition     :         "availableOnDevices" : "[\"desktop\",\"tablet\",\"mobile\"]",
+   definition     :         "hidden" : "0",
+   definition     :         "recordDefinitionName" : null,
+   definition     :         "tooltip" : null,
+   definition     :         "icon" : null,
+   definition     :         "label" : "38309324-b76b-46e1-8a12-8975d24c46e0",
+   definition     :         "displayMode" : "standard",
+   definition     :         "iconAlignment" : "left",
+   definition     :         "size" : "default",
+   definition     :         "recordInstance" : null,
+   definition     :         "style" : "secondary",
+   definition     :         "disabled" : "0",
+   definition     :         "styles" : null,
+   definition     :         "fieldId" : null
+   definition     :       },
+   definition     :       "permissions" : [ {
+   definition     :         "ownerId" : {
+   definition     :           "value" : 0,
+   definition     :           "type" : "GROUP",
+   definition     :           "name" : "Public"
+   definition     :         },
+   definition     :         "type" : "VISIBLE"
+   definition     :       } ],
+   definition     :       "layout" : "{\"outlets\":[{\"name\":\"DEFAULT\",\"columns\":[{\"children\":[]}]}]}",
+   definition     :       "componentDefinitions" : [ {
+   definition     :         "resourceType" : "com.bmc.arsys.rx.services.view.domain.ContainerViewComponentDefinition",
+   definition     :         "lastUpdateTime" : 1745741675000,
+   definition     :         "lastChangedBy" : "dice",
+   definition     :         "owner" : "dice",
+   definition     :         "name" : "3c32e657-7e77-4716-a3e2-baace44d9578",
+   definition     :         "tags" : null,
+   definition     :         "description" : null,
+   definition     :         "overlayGroupId" : "1",
+   definition     :         "internal" : false,
+   definition     :         "guid" : "3c32e657-7e77-4716-a3e2-baace44d9578",
+   definition     :         "type" : "rx-action",
+   definition     :         "propertiesByName" : {
+   definition     :           "name" : "rxCloseViewAction",
+   definition     :           "$condition$" : null,
+   definition     :           "index" : "0",
+   definition     :           "actAsCancel" : "true",
+   definition     :           "viewApi" : "${view.api}"
+   definition     :         },
+   definition     :         "permissions" : [ {
+   definition     :           "ownerId" : {
+   definition     :             "value" : 0,
+   definition     :             "type" : "GROUP",
+   definition     :             "name" : "Public"
+   definition     :           },
+   definition     :           "type" : "VISIBLE"
+   definition     :         } ],
+   definition     :         "layout" : null,
+   definition     :         "componentDefinitions" : [ ]
+   definition     :       } ]
+   definition     :     }, {
+   definition     :       "resourceType" : "com.bmc.arsys.rx.services.view.domain.ContainerViewComponentDefinition",
+   definition     :       "lastUpdateTime" : 1745741675000,
+   definition     :       "lastChangedBy" : "dice",
+   definition     :       "owner" : "dice",
+   definition     :       "name" : "ccb1eef9-8084-40dc-9c99-d7e2e346f41b",
+   definition     :       "tags" : null,
+   definition     :       "description" : null,
+   definition     :       "overlayGroupId" : "1",
+   definition     :       "internal" : false,
+   definition     :       "guid" : "ccb1eef9-8084-40dc-9c99-d7e2e346f41b",
+   definition     :       "type" : "rx-action-button",
+   definition     :       "propertiesByName" : {
+   definition     :         "availableOnDevices" : "[\"desktop\",\"tablet\",\"mobile\"]",
+   definition     :         "hidden" : "0",
+   definition     :         "recordDefinitionName" : null,
+   definition     :         "tooltip" : null,
+   definition     :         "icon" : null,
+   definition     :         "label" : "327c562a-cad9-4867-9f4d-6be04fefdf22",
+   definition     :         "displayMode" : "standard",
+   definition     :         "iconAlignment" : "left",
+   definition     :         "size" : "default",
+   definition     :         "recordInstance" : null,
+   definition     :         "style" : "primary",
+   definition     :         "disabled" : "0",
+   definition     :         "styles" : null,
+   definition     :         "fieldId" : null
+   definition     :       },
+   definition     :       "permissions" : [ {
+   definition     :         "ownerId" : {
+   definition     :           "value" : 0,
+   definition     :           "type" : "GROUP",
+   definition     :           "name" : "Public"
+   definition     :         },
+   definition     :         "type" : "VISIBLE"
+   definition     :       } ],
+   definition     :       "layout" : "{\"outlets\":[{\"name\":\"DEFAULT\",\"columns\":[{\"children\":[]}]}]}",
+   definition     :       "componentDefinitions" : [ {
+   definition     :         "resourceType" : "com.bmc.arsys.rx.services.view.domain.ContainerViewComponentDefinition",
+   definition     :         "lastUpdateTime" : 1745741675000,
+   definition     :         "lastChangedBy" : "dice",
+   definition     :         "owner" : "dice",
+   definition     :         "name" : "c8d7a016-7cf0-476a-adeb-ff456c14e8e1",
+   definition     :         "tags" : null,
+   definition     :         "description" : null,
+   definition     :         "overlayGroupId" : "1",
+   definition     :         "internal" : false,
+   definition     :         "guid" : "c8d7a016-7cf0-476a-adeb-ff456c14e8e1",
+   definition     :         "type" : "rx-action",
+   definition     :         "propertiesByName" : {
+   definition     :           "$condition$" : null,
+   definition     :           "viewApi" : "${view.api}",
+   definition     :           "name" : "rxSaveAction",
+   definition     :           "index" : "0",
+   definition     :           "targetApi" : "${view.components.9224971e-6b76-4371-9ce8-124d289abc62.api}",
+   definition     :           "closeAfterSave" : "true"
+   definition     :         },
+   definition     :         "permissions" : [ {
+   definition     :           "ownerId" : {
+   definition     :             "value" : 0,
+   definition     :             "type" : "GROUP",
+   definition     :             "name" : "Public"
+   definition     :           },
+   definition     :           "type" : "VISIBLE"
+   definition     :         } ],
+   definition     :         "layout" : null,
+   definition     :         "componentDefinitions" : [ ]
+   definition     :       } ]
+   definition     :     } ]
+   definition     :   }, {
+   definition     :     "resourceType" : "com.bmc.arsys.rx.services.view.domain.ContainerViewComponentDefinition",
+   definition     :     "lastUpdateTime" : 1745741675000,
+   definition     :     "lastChangedBy" : "dice",
+   definition     :     "owner" : "dice",
+   definition     :     "name" : "Tests",
+   definition     :     "tags" : null,
+   definition     :     "description" : null,
+   definition     :     "overlayGroupId" : "1",
+   definition     :     "internal" : false,
+   definition     :     "guid" : "9224971e-6b76-4371-9ce8-124d289abc62",
+   definition     :     "type" : "rx-record-editor",
+   definition     :     "propertiesByName" : {
+   definition     :       "mode" : "CREATE",
+   definition     :       "availableOnDevices" : "[\"desktop\",\"tablet\",\"mobile\"]",
+   definition     :       "recordDefinitionName" : "IDGB1RPTG5DGIASV193GSV193GRDR2",
+   definition     :       "allowEdit" : null
+   definition     :     },
+   definition     :     "permissions" : [ {
+   definition     :       "ownerId" : {
+   definition     :         "value" : 0,
+   definition     :         "type" : "GROUP",
+   definition     :         "name" : "Public"
+   definition     :       },
+   definition     :       "type" : "VISIBLE"
+   definition     :     } ],
+   definition     :     "layout" : "{\"outlets\":[{\"name\":\"DEFAULT\",\"columns\":[{\"children\":[\"f8965bb0-d762-4eed-992b-132320e48035\",\"cad37822-ece5-46fb-b844-485b5e911662\",\"de03f6e2-15e2-4228-8e3c-c3eea6f97829\"]}]}]}",
+   definition     :     "componentDefinitions" : [ {
+   definition     :       "resourceType" : "com.bmc.arsys.rx.services.view.domain.ViewComponentDefinition",
+   definition     :       "lastUpdateTime" : 1745741675000,
+   definition     :       "lastChangedBy" : "dice",
+   definition     :       "owner" : "dice",
+   definition     :       "name" : "cad37822-ece5-46fb-b844-485b5e911662",
+   definition     :       "tags" : null,
+   definition     :       "description" : null,
+   definition     :       "overlayGroupId" : "1",
+   definition     :       "internal" : false,
+   definition     :       "guid" : "cad37822-ece5-46fb-b844-485b5e911662",
+   definition     :       "type" : "rx-character-field",
+   definition     :       "propertiesByName" : {
+   definition     :         "availableOnDevices" : "[\"desktop\",\"tablet\",\"mobile\"]",
+   definition     :         "hidden" : "0",
+   definition     :         "tooltip" : null,
+   definition     :         "disabled" : "0",
+   definition     :         "enableMultiSelection" : null,
+   definition     :         "label" : "06799545-a167-46db-8294-8e4eebd23f2a",
+   definition     :         "value" : null,
+   definition     :         "additionalQueryCriteria" : null,
+   definition     :         "fieldId" : "536870915"
+   definition     :       },
+   definition     :       "permissions" : [ {
+   definition     :         "ownerId" : {
+   definition     :           "value" : 0,
+   definition     :           "type" : "GROUP",
+   definition     :           "name" : "Public"
+   definition     :         },
+   definition     :         "type" : "VISIBLE"
+   definition     :       } ]
+   definition     :     }, {
+   definition     :       "resourceType" : "com.bmc.arsys.rx.services.view.domain.ViewComponentDefinition",
+   definition     :       "lastUpdateTime" : 1745741675000,
+   definition     :       "lastChangedBy" : "dice",
+   definition     :       "owner" : "dice",
+   definition     :       "name" : "de03f6e2-15e2-4228-8e3c-c3eea6f97829",
+   definition     :       "tags" : null,
+   definition     :       "description" : null,
+   definition     :       "overlayGroupId" : "1",
+   definition     :       "internal" : false,
+   definition     :       "guid" : "de03f6e2-15e2-4228-8e3c-c3eea6f97829",
+   definition     :       "type" : "rx-textarea-field",
+   definition     :       "propertiesByName" : {
+   definition     :         "availableOnDevices" : "[\"desktop\",\"tablet\",\"mobile\"]",
+   definition     :         "hidden" : "0",
+   definition     :         "tooltip" : null,
+   definition     :         "disabled" : "0",
+   definition     :         "label" : "84de6303-3666-4661-9cc8-634efed4bd22",
+   definition     :         "value" : null,
+   definition     :         "fieldId" : "536870913"
+   definition     :       },
+   definition     :       "permissions" : [ {
+   definition     :         "ownerId" : {
+   definition     :           "value" : 0,
+   definition     :           "type" : "GROUP",
+   definition     :           "name" : "Public"
+   definition     :         },
+   definition     :         "type" : "VISIBLE"
+   definition     :       } ]
+   definition     :     }, {
+   definition     :       "resourceType" : "com.bmc.arsys.rx.services.view.domain.ViewComponentDefinition",
+   definition     :       "lastUpdateTime" : 1745741675000,
+   definition     :       "lastChangedBy" : "dice",
+   definition     :       "owner" : "dice",
+   definition     :       "name" : "f8965bb0-d762-4eed-992b-132320e48035",
+   definition     :       "tags" : null,
+   definition     :       "description" : null,
+   definition     :       "overlayGroupId" : "1",
+   definition     :       "internal" : false,
+   definition     :       "guid" : "f8965bb0-d762-4eed-992b-132320e48035",
+   definition     :       "type" : "rx-textarea-field",
+   definition     :       "propertiesByName" : {
+   definition     :         "availableOnDevices" : "[\"desktop\",\"tablet\",\"mobile\"]",
+   definition     :         "hidden" : "0",
+   definition     :         "tooltip" : null,
+   definition     :         "disabled" : "0",
+   definition     :         "label" : "3c78551e-fe47-4ae4-a8e8-a90fad055ba8",
+   definition     :         "value" : null,
+   definition     :         "fieldId" : "536870914"
+   definition     :       },
+   definition     :       "permissions" : [ {
+   definition     :         "ownerId" : {
+   definition     :           "value" : 0,
+   definition     :           "type" : "GROUP",
+   definition     :           "name" : "Public"
+   definition     :         },
+   definition     :         "type" : "VISIBLE"
+   definition     :       } ]
+   definition     :     } ]
+   definition     :   } ],
+   definition     :   "permissions" : [ {
+   definition     :     "ownerId" : {
+   definition     :       "value" : 0,
+   definition     :       "type" : "GROUP",
+   definition     :       "name" : "Public"
+   definition     :     },
+   definition     :     "type" : "VISIBLE"
+   definition     :   } ],
+   definition     :   "localizableStringsByComponentId" : null,
+   definition     :   "overlayDescriptor" : {
+   definition     :     "parentOverlayGroupId" : null
+   definition     :   },
+   definition     :   "allowOverlay" : false,
+   definition     :   "type" : "REGULAR",
+   definition     :   "styles" : null,
+   definition     :   "targetViewDefinitionName" : null,
+   definition     :   "targetExtensionContainerGuid" : null
+   definition     : }
+end

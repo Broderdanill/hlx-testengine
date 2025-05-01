@@ -1,0 +1,30 @@
+begin association definition
+   name           : hlx.cypress:Tests-Ass-TestSuites
+   definition     : {
+   definition     :   "version" : null,
+   definition     :   "lastUpdateTime" : 1745828475000,
+   definition     :   "lastChangedBy" : "dice",
+   definition     :   "owner" : "dice",
+   definition     :   "name" : "hlx.cypress:Tests-Ass-TestSuites",
+   definition     :   "tags" : null,
+   definition     :   "description" : null,
+   definition     :   "overlayGroupId" : "1",
+   definition     :   "scope" : "BUNDLE",
+   definition     :   "internal" : false,
+   definition     :   "guid" : "IDGBGPZNA83S9ASV5FV5SV5FV5KBW5",
+   definition     :   "nodeAId" : "hlx.cypress:Tests",
+   definition     :   "nodeBId" : "hlx.cypress:TestSuites",
+   definition     :   "nodeAName" : "Test",
+   definition     :   "nodeBName" : "TestSuite",
+   definition     :   "shouldCascadeDelete" : false,
+   definition     :   "cardinality" : "MANY_TO_MANY",
+   definition     :   "nodeAKeys" : [ 379 ],
+   definition     :   "nodeBKeys" : [ 379 ],
+   definition     :   "isEnabled" : true,
+   definition     :   "overlayDescriptor" : {
+   definition     :     "parentOverlayGroupId" : null
+   definition     :   },
+   definition     :   "allowOverlay" : false,
+   definition     :   "nodeAModality" : "OPTIONAL"
+   definition     : }
+end

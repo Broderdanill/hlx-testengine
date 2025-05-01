@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Pod
+metadata:
+  name: hlx-testengine
+spec:
+  containers:
+    - name: hlx-testengine
+      image: localhost/hlx-testengine:latest
+      ports:
+        - containerPort: 8000
+          hostport: 8000
+      env:
+        - name: USERNAME
+          value: "Demo"
+        - name: PASSWORD
+          value: "P@ssw0rd"
+        - name: BMC_HELIX_API
+          value: "http://arserver:8008/api/arsys/v1/entry/hlx.cypress:TestResults"
+        - name: BMC_AUTH_URL
+          value: "http://arserver:8008/api/jwt/login"
+        - name: LOG_LEVEL
+          value: "DEBUG"
+  networks:
+    - name: helix
