@@ -1,30 +1,10 @@
-# hlx-testengine
-hlx-testengine
+# Description
+This i a bundle of a kubernets deployment to automate testing from microsoft edge recordings (json) in a container with microsoft edge running tests in headless mode.
+The tests will be triggered from a BMC Helix Innovation Studio application and the results after container has tested it will be returned to the Innovation Studio application aswell
 
-# Helix -> testengine
-TestRunId
-Recording
-TestName
-
-
-
-# testengine -> Helix
-              TestName: testName,
-              FullTitle: fullTitle,
-              Status: status,
-              DurationMs: duration,
-              RunTime: runTime,
-              FileName: file,
-              SuiteTitle: suiteTitle,
-              ErrorMessage: errorMessage,
-              ScreenshotBase64: screenshotBase64,
-              ScreenshotMissing: screenshotMissing,
-              TestRunId: testRunId
-
-
-
-
-# Podman
-cd hlx-testengine
+# Build image with podman
 podman build -t hlx-testengine -f Containerfile .
+
+# Running with podman play kube
 podman play kube kube.yaml
+
