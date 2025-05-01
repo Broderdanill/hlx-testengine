@@ -51,13 +51,18 @@ async def generate_graph(request: Request):
         if df.empty or "SuiteTitle" not in df.columns or "Status" not in df.columns:
             return JSONResponse(status_code=400, content={"error": "Ogiltig data. Kräver SuiteTitle och Status."})
 
-        # Gruppvis summering
         summary = df.groupby(["SuiteTitle", "Status"]).size().unstack(fill_value=0)
-        colors = {"passed": "green", "failed": "red"}
+        colors = {"passed": "#2ecc71", "failed": "#e74c3c"}
 
-        # --- Graf 1: Stapeldiagram med procent ---
-        fig, ax = plt.subplots(figsize=(10, 6))
-        summary.plot(kind="bar", stacked=True, ax=ax, color=[colors.get(x, "#333333") for x in summary.columns])
+        # --- Graf 1: Stapel med procent ---
+        fig, ax = plt.subplots(figsize=(12, 8))  # större figur
+        summary.plot(
+            kind="bar",
+            stacked=True,
+            ax=ax,
+            color=[colors.get(x, "#7f8c8d") for x in summary.columns],
+            edgecolor="black"
+        )
 
         totals = summary.sum(axis=1)
         for i, (index, row) in enumerate(summary.iterrows()):
@@ -67,40 +72,41 @@ async def generate_graph(request: Request):
             if total > 0:
                 pass_pct = passed / total * 100
                 fail_pct = failed / total * 100
-                ax.text(i, passed / 2, f"{pass_pct:.0f}%", ha='center', va='center', color='white', fontsize=10)
+                ax.text(i, passed / 2, f"{pass_pct:.0f}%", ha='center', va='center', color='white', fontsize=11)
                 if failed > 0:
-                    ax.text(i, passed + failed / 2, f"{fail_pct:.0f}%", ha='center', va='center', color='white', fontsize=10)
+                    ax.text(i, passed + failed / 2, f"{fail_pct:.0f}%", ha='center', va='center', color='white', fontsize=11)
 
-        plt.title("Testresultat per SuiteTitle")
-        plt.ylabel("Antal testfall")
-        plt.xlabel("SuiteTitle")
+        ax.set_title("Testresultat per SuiteTitle", fontsize=16)
+        ax.set_ylabel("Antal testfall", fontsize=13)
+        ax.set_xlabel("SuiteTitle", fontsize=13)
         plt.xticks(rotation=45, ha="right")
         plt.tight_layout()
 
         buf1 = BytesIO()
-        plt.savefig(buf1, format="png")
+        plt.savefig(buf1, format="png", dpi=200)  # högre DPI
         buf1.seek(0)
         base64_image_1 = base64.b64encode(buf1.read()).decode("utf-8")
         buf1.close()
         plt.close(fig)
 
-        # --- Graf 2: Summerad status per Suite ---
+        # --- Graf 2: Summerad status per suite (pie chart) ---
         suite_results = df.groupby("SuiteTitle")["Status"].apply(lambda x: "failed" if "failed" in x.values else "passed")
         suite_summary = suite_results.value_counts()
 
-        fig2, ax2 = plt.subplots(figsize=(6, 6))
+        fig2, ax2 = plt.subplots(figsize=(8, 8))
         suite_summary.plot.pie(
             labels=[f"{label} ({count})" for label, count in suite_summary.items()],
-            colors=[colors.get(x, "#333333") for x in suite_summary.index],
+            colors=[colors.get(x, "#7f8c8d") for x in suite_summary.index],
             autopct="%1.1f%%",
             startangle=90,
+            textprops={'fontsize': 12},
             ax=ax2
         )
-        ax2.set_title("Översikt per SuiteTitle")
+        ax2.set_title("Översikt per SuiteTitle", fontsize=15)
         ax2.set_ylabel("")
 
         buf2 = BytesIO()
-        plt.savefig(buf2, format="png")
+        plt.savefig(buf2, format="png", dpi=200)
         buf2.seek(0)
         base64_image_2 = base64.b64encode(buf2.read()).decode("utf-8")
         buf2.close()
@@ -114,6 +120,7 @@ async def generate_graph(request: Request):
     except Exception as e:
         logger.exception("Fel vid generering av grafer")
         return JSONResponse(status_code=500, content={"error": str(e)})
+
 
 
 async def worker():
