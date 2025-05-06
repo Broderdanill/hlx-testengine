@@ -6,7 +6,7 @@ logger = getLogger(__name__)
 
 async def get_token():
     logger.info("Begär token från BMC med form-urlencoded...")
-    async with httpx.AsyncClient() as client:
+    async with httpx.AsyncClient(verify=False) as client:  # 👈
         response = await client.post(
             os.getenv("BMC_AUTH_URL"),
             data={
@@ -21,10 +21,14 @@ async def get_token():
         logger.debug(f"Mottog token: {token[:10]}...")
         return token
 
-
 async def post_result(data: dict, token: str):
     logger.info("Postar resultat till BMC...")
-    async with httpx.AsyncClient() as client:
+
+    if logger.isEnabledFor(10):  # 10 = logging.DEBUG
+        import json
+        logger.debug("Begäran till BMC (JSON):\n%s", json.dumps({"values": data}, indent=2))
+
+    async with httpx.AsyncClient(verify=False) as client:
         response = await client.post(
             os.getenv("BMC_HELIX_API"),
             headers={"Authorization": f"AR-JWT {token}"},

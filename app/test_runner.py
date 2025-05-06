@@ -1,5 +1,5 @@
 from playwright.async_api import async_playwright
-import base64, time
+import base64, time, asyncio
 from datetime import datetime
 from logging import getLogger
 
@@ -180,42 +180,43 @@ def _normalize_selector(raw_selector: str) -> str | None:
         return raw_selector
 
 
-async def _try_selectors(step, frame, action):
+async def _try_selectors(step, frame, action, retries=10, delay=0.5):
     selector_groups = step.get("selectors", [])
-    
-    for group in selector_groups:
-        for raw_selector in group:
-            selector = _normalize_selector(raw_selector)
-            if not selector:
-                logger.debug(f"Hoppar över osupportad selector: {raw_selector}")
-                continue
 
-            try:
-                base_locator = frame.locator(selector)
-                count = await base_locator.count()
-
-                if count == 0:
-                    logger.debug(f"Selector {selector} hittade inga element.")
+    for attempt in range(retries):
+        for group in selector_groups:
+            for raw_selector in group:
+                selector = _normalize_selector(raw_selector)
+                if not selector:
+                    logger.debug(f"Hoppar över osupportad selector: {raw_selector}")
                     continue
 
-                logger.debug(f"Selector {selector} matchade {count} element – testar varje enskilt.")
+                try:
+                    base_locator = frame.locator(selector)
+                    count = await base_locator.count()
 
-                for i in range(count):
-                    try:
-                        candidate = base_locator.nth(i)
-                        await candidate.wait_for(state="attached", timeout=3000)
+                    if count == 0:
+                        logger.debug(f"[Försök {attempt+1}/{retries}] Selector {selector} hittade inga element.")
+                        continue
 
-                        if await candidate.is_visible():
-                            await candidate.scroll_into_view_if_needed()
-                            await action(candidate)
-                            logger.debug(f"Agerade på selector: {selector} [element {i}]")
-                            return
-                        else:
-                            logger.debug(f"Selector {selector} [element {i}] är inte synlig.")
-                    except Exception as inner_e:
-                        logger.debug(f"Misslyckades på selector: {selector} [element {i}], fel: {inner_e}")
+                    logger.debug(f"Selector {selector} matchade {count} element – testar varje enskilt.")
 
-            except Exception as e:
-                logger.debug(f"Misslyckades på selector: {selector}, fel: {e}")
+                    for i in range(count):
+                        try:
+                            candidate = base_locator.nth(i)
+                            await candidate.wait_for(state="attached", timeout=3000)
 
-    raise Exception("Inget selektoralternativ fungerade")
+                            if await candidate.is_visible():
+                                await candidate.scroll_into_view_if_needed()
+                                await action(candidate)
+                                logger.debug(f"Agerade på selector: {selector} [element {i}]")
+                                return
+                            else:
+                                logger.debug(f"Selector {selector} [element {i}] är inte synlig.")
+                        except Exception as inner_e:
+                            logger.debug(f"Misslyckades på selector: {selector} [element {i}], fel: {inner_e}")
+                except Exception as e:
+                    logger.debug(f"Misslyckades på selector: {selector}, fel: {e}")
+        await asyncio.sleep(delay)
+
+    raise Exception(f"Inget selektoralternativ fungerade efter {retries} försök")

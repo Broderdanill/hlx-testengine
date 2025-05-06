@@ -70,9 +70,9 @@ async def generate_graph(request: Request):
                 ax1.text(i, passed / 2, f"{(passed / total * 100):.0f}%", ha='center', va='center', color='white', fontsize=11)
                 if failed > 0:
                     ax1.text(i, passed + failed / 2, f"{(failed / total * 100):.0f}%", ha='center', va='center', color='white', fontsize=11)
-        ax1.set_title("Testresultat per SuiteTitle", fontsize=16)
+        ax1.set_title("Test result (Suite)", fontsize=16)
         ax1.set_ylabel("Antal testfall", fontsize=13)
-        ax1.set_xlabel("SuiteTitle", fontsize=13)
+        ax1.set_xlabel("Suite Name", fontsize=13)
         plt.xticks(rotation=45, ha="right")
         plt.tight_layout()
         buf1 = BytesIO()
