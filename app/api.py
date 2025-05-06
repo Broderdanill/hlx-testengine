@@ -51,108 +51,104 @@ async def generate_graph(request: Request):
         if df.empty or "SuiteTitle" not in df.columns or "Status" not in df.columns:
             return JSONResponse(status_code=400, content={"error": "Ogiltig data. Kräver SuiteTitle och Status."})
 
+        if "TestName" not in df.columns:
+            return JSONResponse(status_code=400, content={"error": "Ogiltig data. Kräver även TestName för vissa grafer."})
+
+        # Färgpalett med ljus bakgrund
         colors = {"passed": "#2ecc71", "failed": "#e74c3c"}
 
-        # --- Graf 1: Stapel per SuiteTitle ---
-        summary = df.groupby(["SuiteTitle", "Status"]).size().unstack(fill_value=0)
-        fig1, ax1 = plt.subplots(figsize=(12, 8))
-        summary.plot(
-            kind="bar", stacked=True, ax=ax1,
-            color=[colors.get(x, "#7f8c8d") for x in summary.columns],
-            edgecolor="black"
-        )
-        totals = summary.sum(axis=1)
-        for i, (index, row) in enumerate(summary.iterrows()):
-            passed = row.get("passed", 0)
-            failed = row.get("failed", 0)
-            total = passed + failed
-            if total > 0:
-                ax1.text(i, passed / 2, f"{(passed / total * 100):.0f}%", ha='center', va='center', color='white', fontsize=11)
-                if failed > 0:
-                    ax1.text(i, passed + failed / 2, f"{(failed / total * 100):.0f}%", ha='center', va='center', color='white', fontsize=11)
-        ax1.set_title("Test result (Suite)", fontsize=16)
-        ax1.set_ylabel("Antal testfall", fontsize=13)
-        ax1.set_xlabel("Suite Name", fontsize=13)
-        plt.xticks(rotation=45, ha="right")
-        plt.tight_layout()
-        buf1 = BytesIO()
-        plt.savefig(buf1, format="png", dpi=200)
-        buf1.seek(0)
-        base64_image_1 = base64.b64encode(buf1.read()).decode("utf-8")
-        buf1.close()
-        plt.close(fig1)
+        images = []
+        plt.style.use('default')  # Ljusstil
 
-        # --- Graf 2: Pie per SuiteTitle ---
+        def save_fig_to_base64(fig):
+            buf = BytesIO()
+            plt.savefig(buf, format="png", dpi=250, bbox_inches="tight")
+            buf.seek(0)
+            img_str = base64.b64encode(buf.read()).decode("utf-8")
+            buf.close()
+            plt.close(fig)
+            return img_str
+
+        def plot_bar_grouped(df_grouped, title, xlabel):
+            fig, ax = plt.subplots(figsize=(12, 7))
+            color_keys = df_grouped.columns.tolist()
+            bar_colors = [colors.get(x, "#999999") for x in color_keys]
+
+            df_grouped.plot(
+                kind="bar",
+                stacked=True,
+                ax=ax,
+                color=bar_colors,
+                edgecolor="black",
+                linewidth=0.8
+            )
+
+            totals = df_grouped.sum(axis=1)
+            for i, (index, row) in enumerate(df_grouped.iterrows()):
+                passed = row.get("passed", 0)
+                failed = row.get("failed", 0)
+                total = passed + failed
+                if total > 0:
+                    ax.text(i, passed / 2, f"{(passed / total * 100):.0f}%", ha='center', va='center', color='white', fontsize=11)
+                    if failed > 0:
+                        ax.text(i, passed + failed / 2, f"{(failed / total * 100):.0f}%", ha='center', va='center', color='white', fontsize=11)
+
+            ax.set_title(title, fontsize=17)
+            ax.set_ylabel("Antal testfall")
+            ax.set_xlabel(xlabel)
+            ax.tick_params(axis='x')
+            ax.tick_params(axis='y')
+            plt.xticks(rotation=45, ha="right")
+            plt.tight_layout()
+
+            return save_fig_to_base64(fig)
+
+        def plot_pie(summary_series, title):
+            fig, ax = plt.subplots(figsize=(8, 8))
+            summary_series.plot.pie(
+                labels=[f"{label} ({count})" for label, count in summary_series.items()],
+                colors=[colors.get(x, "#999999") for x in summary_series.index],
+                autopct="%1.1f%%",
+                startangle=90,
+                textprops={'fontsize': 11},
+                ax=ax
+            )
+            ax.set_title(title, fontsize=16)
+            ax.set_ylabel("")
+            return save_fig_to_base64(fig)
+
+        # --- Grafer ---
+        graph1 = plot_bar_grouped(
+            df.groupby(["SuiteTitle", "Status"]).size().unstack(fill_value=0),
+            "Testresultat per SuiteTitle",
+            "SuiteTitle"
+        )
+
         suite_results = df.groupby("SuiteTitle")["Status"].apply(lambda x: "failed" if "failed" in x.values else "passed")
-        suite_summary = suite_results.value_counts()
-        fig2, ax2 = plt.subplots(figsize=(8, 8))
-        suite_summary.plot.pie(
-            labels=[f"{label} ({count})" for label, count in suite_summary.items()],
-            colors=[colors.get(x, "#7f8c8d") for x in suite_summary.index],
-            autopct="%1.1f%%",
-            startangle=90,
-            textprops={'fontsize': 12},
-            ax=ax2
+        graph2 = plot_pie(suite_results.value_counts(), "Översikt per SuiteTitle")
+
+        graph3 = plot_bar_grouped(
+            df.groupby(["TestName", "Status"]).size().unstack(fill_value=0),
+            "Testresultat per TestName",
+            "TestName"
         )
-        ax2.set_title("Översikt per SuiteTitle", fontsize=15)
-        ax2.set_ylabel("")
-        buf2 = BytesIO()
-        plt.savefig(buf2, format="png", dpi=200)
-        buf2.seek(0)
-        base64_image_2 = base64.b64encode(buf2.read()).decode("utf-8")
-        buf2.close()
-        plt.close(fig2)
 
-        # --- Graf 3: Stapel per TestName ---
-        summary_name = df.groupby(["TestName", "Status"]).size().unstack(fill_value=0)
-        fig3, ax3 = plt.subplots(figsize=(12, 8), dpi=200)
-        summary_name.plot(kind="bar", stacked=True, ax=ax3, color=[colors.get(x, "#7f8c8d") for x in summary_name.columns], edgecolor="black")
-        for i, (index, row) in enumerate(summary_name.iterrows()):
-            passed = row.get("passed", 0)
-            failed = row.get("failed", 0)
-            total = passed + failed
-            if total > 0:
-                ax3.text(i, passed / 2, f"{(passed / total * 100):.0f}%", ha='center', va='center', color='white', fontsize=10)
-                if failed > 0:
-                    ax3.text(i, passed + failed / 2, f"{(failed / total * 100):.0f}%", ha='center', va='center', color='white', fontsize=10)
-        ax3.set_title("Testresultat per TestName", fontsize=16)
-        ax3.set_ylabel("Antal testfall")
-        ax3.set_xlabel("TestName")
-        plt.xticks(rotation=45, ha="right")
-        plt.tight_layout()
-        buf3 = BytesIO()
-        plt.savefig(buf3, format="png", dpi=200)
-        buf3.seek(0)
-        base64_image_3 = base64.b64encode(buf3.read()).decode("utf-8")
-        buf3.close()
-        plt.close(fig3)
-
-        # --- Graf 4: Pie per TestName ---
         testname_results = df.groupby("TestName")["Status"].apply(lambda x: "failed" if "failed" in x.values else "passed")
-        testname_summary = testname_results.value_counts()
-        fig4, ax4 = plt.subplots(figsize=(8, 8), dpi=200)
-        testname_summary.plot.pie(
-            labels=[f"{label} ({count})" for label, count in testname_summary.items()],
-            colors=[colors.get(x, "#7f8c8d") for x in testname_summary.index],
-            autopct="%1.1f%%",
-            startangle=90,
-            textprops={'fontsize': 12},
-            ax=ax4
-        )
-        ax4.set_title("Översikt per TestName")
-        ax4.set_ylabel("")
-        buf4 = BytesIO()
-        plt.savefig(buf4, format="png", dpi=200)
-        buf4.seek(0)
-        base64_image_4 = base64.b64encode(buf4.read()).decode("utf-8")
-        buf4.close()
-        plt.close(fig4)
+        graph4 = plot_pie(testname_results.value_counts(), "Översikt per TestName")
+
+        total_passed = df[df["Status"] == "passed"].shape[0]
+        total_failed = df[df["Status"] == "failed"].shape[0]
 
         return {
-            "graph1_base64": base64_image_1,
-            "graph2_base64": base64_image_2,
-            "graph3_base64": base64_image_3,
-            "graph4_base64": base64_image_4
+            "graph1_base64": graph1,
+            "graph2_base64": graph2,
+            "graph3_base64": graph3,
+            "graph4_base64": graph4,
+            "summary": {
+                "total_passed": total_passed,
+                "total_failed": total_failed,
+                "total_tests": len(df)
+            }
         }
 
     except Exception as e:
