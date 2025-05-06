@@ -39,6 +39,8 @@ async def run_test(recording: dict):
             page.on("pageerror", lambda exc: logger.error(f"Page error: {exc}"))
 
             current_frame = page.main_frame
+            popup_pages = []
+            context.on("page", lambda new_page: popup_pages.append(new_page))
 
             for i, step in enumerate(recording.get("steps", [])):
                 step_type = step.get("type")
@@ -63,6 +65,19 @@ async def run_test(recording: dict):
 
                     if step_type == "navigate":
                         await page.goto(step["url"], wait_until="load", timeout=timeout)
+
+                    elif step_type == "switchToPopup":
+                        if popup_pages:
+                            page = popup_pages[-1]
+                            current_frame = page.main_frame
+                            logger.info("Växlat till popup-fönster")
+                        else:
+                            raise Exception("Inget popup-fönster hittades")
+
+                    elif step_type == "switchToMain":
+                        page = context.pages[0]
+                        current_frame = page.main_frame
+                        logger.info("Växlat tillbaka till huvudsidan")
 
                     elif step_type == "click":
                         await _try_selectors_with_retries(
