@@ -35,7 +35,6 @@ async def run_test(recording: dict):
             context = await browser.new_context()
             page = await context.new_page()
 
-            # Logga JS-konsolmeddelanden
             page.on("console", lambda msg: logger.debug(f"Console [{msg.type}]: {msg.text}"))
             page.on("pageerror", lambda exc: logger.error(f"Page error: {exc}"))
 
@@ -77,6 +76,35 @@ async def run_test(recording: dict):
                         )
                         await page.wait_for_timeout(300)
 
+                    elif step_type == "doubleClick":
+                        await _try_selectors_with_retries(
+                            step,
+                            current_frame,
+                            action=lambda loc: loc.dblclick(timeout=timeout)
+                        )
+
+                    elif step_type == "rightClick":
+                        await _try_selectors_with_retries(
+                            step,
+                            current_frame,
+                            action=lambda loc: loc.click(button="right", timeout=timeout)
+                        )
+
+                    elif step_type == "type":
+                        await page.keyboard.type(step.get("text", ""), delay=step.get("delay", 100))
+
+                    elif step_type == "press":
+                        await page.keyboard.press(step.get("key", ""), timeout=timeout)
+
+                    elif step_type == "dragAndDrop":
+                        source = step.get("source")
+                        target = step.get("target")
+                        if source and target:
+                            src_selector = _normalize_selector(source)
+                            tgt_selector = _normalize_selector(target)
+                            if src_selector and tgt_selector:
+                                await page.locator(src_selector).drag_to(page.locator(tgt_selector))
+
                     elif step_type == "change":
                         await _try_selectors_with_retries(
                             step,
@@ -111,10 +139,14 @@ async def run_test(recording: dict):
                         await page.wait_for_timeout(300)
 
                     elif step_type == "setViewport":
-                        await page.set_viewport_size({
-                            "width": step.get("width", 1280),
-                            "height": step.get("height", 720)
-                        })
+                        if "width" in step and "height" in step:
+                            await page.set_viewport_size({
+                                "width": step["width"],
+                                "height": step["height"]
+                            })
+                        else:
+                            logger.warning("setViewport saknar width och height – använder standard.")
+                            await page.set_viewport_size({"width": 1280, "height": 720})
 
                     elif step_type == "scroll":
                         await current_frame.evaluate("window.scrollBy(0, 100)")
@@ -158,6 +190,29 @@ async def run_test(recording: dict):
                                     actual_text = await locator.inner_text()
                                     if expected_text not in actual_text:
                                         raise AssertionError(f"Text stämmer ej. Förväntat: '{expected_text}', Fick: '{actual_text}'")
+
+                            elif event_type == "elementVisible":
+                                selector = _normalize_selector(event.get("selector", ""))
+                                if selector:
+                                    locator = current_frame.locator(selector)
+                                    await locator.wait_for(state="visible", timeout=5000)
+
+                            elif event_type == "elementHidden":
+                                selector = _normalize_selector(event.get("selector", ""))
+                                if selector:
+                                    locator = current_frame.locator(selector)
+                                    await locator.wait_for(state="hidden", timeout=5000)
+
+                            elif event_type == "attributeValue":
+                                selector = _normalize_selector(event.get("selector", ""))
+                                attr = event.get("attribute")
+                                expected = event.get("value")
+                                if selector and attr and expected:
+                                    locator = current_frame.locator(selector)
+                                    await locator.wait_for(state="attached", timeout=5000)
+                                    actual = await locator.get_attribute(attr)
+                                    if expected not in (actual or ""):
+                                        raise AssertionError(f"Attributvärde stämmer ej: {attr}. Förväntat: '{expected}', Fick: '{actual}'")
 
                             else:
                                 logger.warning(f"Ohanterad assert-event typ: {event_type}")
