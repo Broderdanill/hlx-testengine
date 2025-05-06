@@ -99,10 +99,16 @@ async def run_test(recording: dict):
                         )
 
                     elif step_type == "keyDown":
+                        await _wait_for_dom_stability(page)
+                        await page.wait_for_timeout(500)
                         await page.keyboard.down(step.get("key", ""))
+                        await page.wait_for_timeout(300)
 
                     elif step_type == "keyUp":
+                        await _wait_for_dom_stability(page)
+                        await page.wait_for_timeout(500)
                         await page.keyboard.up(step.get("key", ""))
+                        await page.wait_for_timeout(300)
 
                     elif step_type == "setViewport":
                         await page.set_viewport_size({
@@ -184,7 +190,8 @@ async def run_test(recording: dict):
     except Exception as e:
         logger.error(f"Testet misslyckades: {e}")
         result["Status"] = "failed"
-        result["ErrorMessage"] = str(e)
+        if not result["ErrorMessage"]:
+            result["ErrorMessage"] = str(e)
         result["ErrorStack"] = traceback.format_exc()
         try:
             if page and not page.is_closed():
@@ -245,6 +252,7 @@ async def _try_selectors(step, frame, action):
                 base_locator = frame.locator(selector)
                 count = await base_locator.count()
                 if count == 0:
+                    logger.debug(f"Selector {selector} hittade inga element.")
                     continue
 
                 for i in range(count):
@@ -253,8 +261,27 @@ async def _try_selectors(step, frame, action):
                     if await candidate.is_visible():
                         await candidate.scroll_into_view_if_needed()
                         await action(candidate)
+                        logger.debug(f"Agerade på selector: {selector} [element {i}]")
                         return
+                    else:
+                        logger.debug(f"Selector {selector} [element {i}] är inte synlig.")
             except Exception as e:
                 logger.debug(f"Misslyckades på selector {selector}: {e}")
 
     raise Exception("Ingen fungerande selector hittades")
+
+
+async def _wait_for_dom_stability(page):
+    try:
+        await page.wait_for_load_state("networkidle", timeout=5000)
+        await page.wait_for_function(
+            """() => {
+                const spinner = document.querySelector('.spinner, .loading, .waitCursor');
+                return !spinner || spinner.offsetParent === null;
+            }""",
+            timeout=5000
+        )
+        await page.evaluate("() => new Promise(r => requestAnimationFrame(() => r()))")
+        await page.wait_for_timeout(500)
+    except Exception as e:
+        logger.debug(f"DOM stabilitet kunde inte säkerställas: {e}")
