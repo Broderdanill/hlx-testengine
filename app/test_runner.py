@@ -1,15 +1,25 @@
 from playwright.async_api import async_playwright
-import base64, time, asyncio
+import base64, time, traceback
 from datetime import datetime
 from logging import getLogger
 
 logger = getLogger(__name__)
+
+DEFAULT_TIMEOUTS = {
+    "navigate": 20000,
+    "click": 8000,
+    "change": 5000,
+    "hover": 5000,
+    "waitForSelector": 5000,
+    "default": 3000
+}
 
 async def run_test(recording: dict):
     logger.info(f"Startar test med titel: {recording.get('title', 'N/A')}")
     result = {
         "Status": "passed",
         "ErrorMessage": None,
+        "ErrorStack": None,
         "ScreenshotBase64": None,
         "ScreenshotMissing": True,
         "DurationMs": 0,
@@ -24,6 +34,11 @@ async def run_test(recording: dict):
             browser = await p.chromium.launch(channel="msedge", headless=True)
             context = await browser.new_context()
             page = await context.new_page()
+
+            # Logga JS-konsolmeddelanden
+            page.on("console", lambda msg: logger.debug(f"Console [{msg.type}]: {msg.text}"))
+            page.on("pageerror", lambda exc: logger.error(f"Page error: {exc}"))
+
             current_frame = page.main_frame
 
             for i, step in enumerate(recording.get("steps", [])):
@@ -45,40 +60,42 @@ async def run_test(recording: dict):
                         continue
 
                 try:
+                    timeout = step.get("timeout", DEFAULT_TIMEOUTS.get(step_type, DEFAULT_TIMEOUTS["default"]))
+
                     if step_type == "navigate":
-                        await page.goto(step["url"], wait_until="load", timeout=20000)
+                        await page.goto(step["url"], wait_until="load", timeout=timeout)
 
                     elif step_type == "click":
-                        await _try_selectors(
+                        await _try_selectors_with_retries(
                             step,
                             current_frame,
                             action=lambda loc: loc.click(
                                 position={"x": step.get("offsetX", 0), "y": step.get("offsetY", 0)},
-                                timeout=8000,
+                                timeout=timeout,
                                 force=True
                             )
                         )
-                        await page.wait_for_timeout(300)  # Vänta efter klick
+                        await page.wait_for_timeout(300)
 
                     elif step_type == "change":
-                        await _try_selectors(
+                        await _try_selectors_with_retries(
                             step,
                             current_frame,
-                            action=lambda loc: loc.fill(step.get("value", ""), timeout=5000)
+                            action=lambda loc: loc.fill(step.get("value", ""), timeout=timeout)
                         )
 
                     elif step_type == "hover":
-                        await _try_selectors(
+                        await _try_selectors_with_retries(
                             step,
                             current_frame,
-                            action=lambda loc: loc.hover(timeout=5000)
+                            action=lambda loc: loc.hover(timeout=timeout)
                         )
 
                     elif step_type == "waitForSelector":
-                        await _try_selectors(
+                        await _try_selectors_with_retries(
                             step,
                             current_frame,
-                            action=lambda loc: loc.wait_for(timeout=5000)
+                            action=lambda loc: loc.wait_for(timeout=timeout)
                         )
 
                     elif step_type == "keyDown":
@@ -108,7 +125,9 @@ async def run_test(recording: dict):
                     elif step_type == "assert":
                         events = step.get("assertedEvents", [])
                         for event in events:
-                            if event["type"] == "navigation":
+                            event_type = event.get("type")
+
+                            if event_type == "navigation":
                                 expected_url = event.get("url")
                                 expected_title = event.get("title")
                                 actual_url = page.url
@@ -117,22 +136,43 @@ async def run_test(recording: dict):
                                     raise AssertionError(f"URL stämmer ej. Förväntat: {expected_url}, Fick: {actual_url}")
                                 if expected_title and expected_title.strip() and expected_title.strip() not in actual_title:
                                     raise AssertionError(f"Titel stämmer ej. Förväntat: {expected_title}, Fick: {actual_title}")
+
+                            elif event_type == "elementAppears":
+                                selector = _normalize_selector(event.get("selector", ""))
+                                if selector:
+                                    locator = current_frame.locator(selector)
+                                    await locator.wait_for(state="attached", timeout=5000)
+
+                            elif event_type == "textContent":
+                                selector = _normalize_selector(event.get("selector", ""))
+                                expected_text = event.get("text", "")
+                                if selector and expected_text:
+                                    locator = current_frame.locator(selector)
+                                    await locator.wait_for(state="attached", timeout=5000)
+                                    actual_text = await locator.inner_text()
+                                    if expected_text not in actual_text:
+                                        raise AssertionError(f"Text stämmer ej. Förväntat: '{expected_text}', Fick: '{actual_text}'")
+
+                            else:
+                                logger.warning(f"Ohanterad assert-event typ: {event_type}")
+
                     else:
                         logger.warning(f"Ohanterat stegtyp: {step_type}")
 
+                    logger.debug(f"Efter steg {i+1}: URL = {page.url}, Titel = {await page.title()}")
+
                 except Exception as step_error:
-                    msg = f"Steg {i+1} ({step_type}) misslyckades: {step_error}"
+                    msg = f"Steg {i+1}/{len(recording['steps'])} ({step_type}) misslyckades: {step_error}"
                     logger.error(msg)
                     result["Status"] = "failed"
                     result["ErrorMessage"] = msg
+                    result["ErrorStack"] = traceback.format_exc()
                     try:
                         if page and not page.is_closed():
                             screenshot = await page.screenshot()
                             result["ScreenshotBase64"] = base64.b64encode(screenshot).decode("utf-8")
                             result["ScreenshotMissing"] = False
-                            logger.debug("Skärmdump tagen vid fel.")
                         else:
-                            logger.warning("Sidan är stängd – ingen skärmdump kunde tas.")
                             result["ScreenshotMissing"] = True
                     except Exception as e:
                         logger.warning(f"Kunde inte ta skärmdump: {e}")
@@ -145,13 +185,13 @@ async def run_test(recording: dict):
         logger.error(f"Testet misslyckades: {e}")
         result["Status"] = "failed"
         result["ErrorMessage"] = str(e)
+        result["ErrorStack"] = traceback.format_exc()
         try:
             if page and not page.is_closed():
                 screenshot = await page.screenshot()
                 result["ScreenshotBase64"] = base64.b64encode(screenshot).decode("utf-8")
                 result["ScreenshotMissing"] = False
             else:
-                logger.warning("Sidan är stängd; kan inte ta skärmdump.")
                 result["ScreenshotMissing"] = True
         except Exception as ss_err:
             logger.warning(f"Kunde inte ta skärmdump: {ss_err}")
@@ -180,43 +220,41 @@ def _normalize_selector(raw_selector: str) -> str | None:
         return raw_selector
 
 
-async def _try_selectors(step, frame, action, retries=10, delay=0.5):
-    selector_groups = step.get("selectors", [])
+async def _try_selectors_with_retries(step, frame, action, max_retries=10, delay_ms=1000):
+    for attempt in range(max_retries):
+        try:
+            await _try_selectors(step, frame, action)
+            return
+        except Exception as e:
+            logger.debug(f"Försök {attempt+1}/{max_retries} misslyckades: {e}")
+            await frame.wait_for_timeout(delay_ms)
 
-    for attempt in range(retries):
-        for group in selector_groups:
-            for raw_selector in group:
-                selector = _normalize_selector(raw_selector)
-                if not selector:
-                    logger.debug(f"Hoppar över osupportad selector: {raw_selector}")
+    raise Exception("Inget selektoralternativ fungerade efter flera försök")
+
+
+async def _try_selectors(step, frame, action):
+    selector_groups = step.get("selectors", [])
+    for group in selector_groups:
+        for raw_selector in group:
+            selector = _normalize_selector(raw_selector)
+            if not selector:
+                logger.debug(f"Hoppar över osupportad selector: {raw_selector}")
+                continue
+
+            try:
+                base_locator = frame.locator(selector)
+                count = await base_locator.count()
+                if count == 0:
                     continue
 
-                try:
-                    base_locator = frame.locator(selector)
-                    count = await base_locator.count()
+                for i in range(count):
+                    candidate = base_locator.nth(i)
+                    await candidate.wait_for(state="attached", timeout=3000)
+                    if await candidate.is_visible():
+                        await candidate.scroll_into_view_if_needed()
+                        await action(candidate)
+                        return
+            except Exception as e:
+                logger.debug(f"Misslyckades på selector {selector}: {e}")
 
-                    if count == 0:
-                        logger.debug(f"[Försök {attempt+1}/{retries}] Selector {selector} hittade inga element.")
-                        continue
-
-                    logger.debug(f"Selector {selector} matchade {count} element – testar varje enskilt.")
-
-                    for i in range(count):
-                        try:
-                            candidate = base_locator.nth(i)
-                            await candidate.wait_for(state="attached", timeout=3000)
-
-                            if await candidate.is_visible():
-                                await candidate.scroll_into_view_if_needed()
-                                await action(candidate)
-                                logger.debug(f"Agerade på selector: {selector} [element {i}]")
-                                return
-                            else:
-                                logger.debug(f"Selector {selector} [element {i}] är inte synlig.")
-                        except Exception as inner_e:
-                            logger.debug(f"Misslyckades på selector: {selector} [element {i}], fel: {inner_e}")
-                except Exception as e:
-                    logger.debug(f"Misslyckades på selector: {selector}, fel: {e}")
-        await asyncio.sleep(delay)
-
-    raise Exception(f"Inget selektoralternativ fungerade efter {retries} försök")
+    raise Exception("Ingen fungerande selector hittades")
