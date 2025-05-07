@@ -23,7 +23,8 @@ async def run_test(recording: dict):
         "ScreenshotBase64": None,
         "ScreenshotMissing": True,
         "DurationMs": 0,
-        "RunTime": datetime.utcnow().isoformat() + "Z"
+        "RunTime": datetime.utcnow().isoformat() + "Z",
+        "FailedStep": None  # Lägg till detta
     }
 
     start = time.time()
@@ -31,9 +32,19 @@ async def run_test(recording: dict):
 
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(channel="msedge", headless=True)
-            context = await browser.new_context()
-            page = await context.new_page()
+            browser = await p.chromium.launch_persistent_context(
+                user_data_dir="/tmp/profile",
+                executable_path="/usr/bin/microsoft-edge-stable",
+                headless=True,
+                args=[
+                    "--disable-features=Crashpad",
+                    "--no-sandbox",
+                    "--disable-dev-shm-usage",
+                    "--ignore-certificate-errors"
+                ]
+            )
+            context = browser  # eftersom launch_persistent_context returnerar Context-objekt
+            page = context.pages[0] if context.pages else await context.new_page()
 
             page.on("console", lambda msg: logger.debug(f"Console [{msg.type}]: {msg.text}"))
             page.on("pageerror", lambda exc: logger.debug(f"Ignorerat page error: {exc}"))
@@ -195,6 +206,7 @@ async def run_test(recording: dict):
                     result["Status"] = "failed"
                     result["ErrorMessage"] = msg
                     result["ErrorStack"] = traceback.format_exc()
+                    result["FailedStep"] = step
                     try:
                         if page and not page.is_closed():
                             screenshot = await page.screenshot()
