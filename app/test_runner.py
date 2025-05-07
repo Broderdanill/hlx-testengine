@@ -36,7 +36,7 @@ async def run_test(recording: dict):
             page = await context.new_page()
 
             page.on("console", lambda msg: logger.debug(f"Console [{msg.type}]: {msg.text}"))
-            page.on("pageerror", lambda exc: logger.error(f"Page error: {exc}"))
+            page.on("pageerror", lambda exc: logger.debug(f"Ignorerat page error: {exc}"))
 
             current_frame = page.main_frame
             popup_pages = []
@@ -65,7 +65,7 @@ async def run_test(recording: dict):
 
                     if step_type == "navigate":
                         url = step.get("url", "")
-                        if url.startswith("edge://") or url.startswith("chrome://") or url.startswith("about:"):
+                        if url.startswith(("edge://", "chrome://", "about:")):
                             raise Exception(f"Ogiltig eller osupportad URL: {url}")
                         await page.goto(url, wait_until="load", timeout=timeout)
                         await _wait_for_dom_stability(page)
