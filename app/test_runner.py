@@ -64,7 +64,11 @@ async def run_test(recording: dict):
                     timeout = step.get("timeout", DEFAULT_TIMEOUTS.get(step_type, DEFAULT_TIMEOUTS["default"]))
 
                     if step_type == "navigate":
-                        await page.goto(step["url"], wait_until="load", timeout=timeout)
+                        url = step.get("url", "")
+                        if url.startswith("edge://") or url.startswith("chrome://") or url.startswith("about:"):
+                            raise Exception(f"Ogiltig eller osupportad URL: {url}")
+                        await page.goto(url, wait_until="load", timeout=timeout)
+                        await _wait_for_dom_stability(page)
 
                     elif step_type == "switchToPopup":
                         if popup_pages:
@@ -178,59 +182,7 @@ async def run_test(recording: dict):
                     elif step_type == "assert":
                         events = step.get("assertedEvents", [])
                         for event in events:
-                            event_type = event.get("type")
-
-                            if event_type == "navigation":
-                                expected_url = event.get("url")
-                                expected_title = event.get("title")
-                                actual_url = page.url
-                                actual_title = await page.title()
-                                if expected_url and expected_url not in actual_url:
-                                    raise AssertionError(f"URL stämmer ej. Förväntat: {expected_url}, Fick: {actual_url}")
-                                if expected_title and expected_title.strip() and expected_title.strip() not in actual_title:
-                                    raise AssertionError(f"Titel stämmer ej. Förväntat: {expected_title}, Fick: {actual_title}")
-
-                            elif event_type == "elementAppears":
-                                selector = _normalize_selector(event.get("selector", ""))
-                                if selector:
-                                    locator = current_frame.locator(selector)
-                                    await locator.wait_for(state="attached", timeout=5000)
-
-                            elif event_type == "textContent":
-                                selector = _normalize_selector(event.get("selector", ""))
-                                expected_text = event.get("text", "")
-                                if selector and expected_text:
-                                    locator = current_frame.locator(selector)
-                                    await locator.wait_for(state="attached", timeout=5000)
-                                    actual_text = await locator.inner_text()
-                                    if expected_text not in actual_text:
-                                        raise AssertionError(f"Text stämmer ej. Förväntat: '{expected_text}', Fick: '{actual_text}'")
-
-                            elif event_type == "elementVisible":
-                                selector = _normalize_selector(event.get("selector", ""))
-                                if selector:
-                                    locator = current_frame.locator(selector)
-                                    await locator.wait_for(state="visible", timeout=5000)
-
-                            elif event_type == "elementHidden":
-                                selector = _normalize_selector(event.get("selector", ""))
-                                if selector:
-                                    locator = current_frame.locator(selector)
-                                    await locator.wait_for(state="hidden", timeout=5000)
-
-                            elif event_type == "attributeValue":
-                                selector = _normalize_selector(event.get("selector", ""))
-                                attr = event.get("attribute")
-                                expected = event.get("value")
-                                if selector and attr and expected:
-                                    locator = current_frame.locator(selector)
-                                    await locator.wait_for(state="attached", timeout=5000)
-                                    actual = await locator.get_attribute(attr)
-                                    if expected not in (actual or ""):
-                                        raise AssertionError(f"Attributvärde stämmer ej: {attr}. Förväntat: '{expected}', Fick: '{actual}'")
-
-                            else:
-                                logger.warning(f"Ohanterad assert-event typ: {event_type}")
+                            await _handle_assert_event(event, current_frame, page)
 
                     else:
                         logger.warning(f"Ohanterat stegtyp: {step_type}")
@@ -297,6 +249,43 @@ def _normalize_selector(raw_selector: str) -> str | None:
         return raw_selector
 
 
+async def _handle_assert_event(event, frame, page):
+    event_type = event.get("type")
+    selector = _normalize_selector(event.get("selector", ""))
+    if event_type == "navigation":
+        expected_url = event.get("url")
+        expected_title = event.get("title")
+        actual_url = page.url
+        actual_title = await page.title()
+        if expected_url and expected_url not in actual_url:
+            raise AssertionError(f"URL stämmer ej. Förväntat: {expected_url}, Fick: {actual_url}")
+        if expected_title and expected_title.strip() and expected_title.strip() not in actual_title:
+            raise AssertionError(f"Titel stämmer ej. Förväntat: {expected_title}, Fick: {actual_title}")
+    elif event_type == "elementAppears" and selector:
+        await frame.locator(selector).wait_for(state="attached", timeout=5000)
+    elif event_type == "textContent" and selector:
+        expected_text = event.get("text", "")
+        locator = frame.locator(selector)
+        await locator.wait_for(state="attached", timeout=5000)
+        actual_text = await locator.inner_text()
+        if expected_text not in actual_text:
+            raise AssertionError(f"Text stämmer ej. Förväntat: '{expected_text}', Fick: '{actual_text}'")
+    elif event_type == "elementVisible" and selector:
+        await frame.locator(selector).wait_for(state="visible", timeout=5000)
+    elif event_type == "elementHidden" and selector:
+        await frame.locator(selector).wait_for(state="hidden", timeout=5000)
+    elif event_type == "attributeValue" and selector:
+        attr = event.get("attribute")
+        expected = event.get("value")
+        locator = frame.locator(selector)
+        await locator.wait_for(state="attached", timeout=5000)
+        actual = await locator.get_attribute(attr)
+        if expected not in (actual or ""):
+            raise AssertionError(f"Attributvärde stämmer ej: {attr}. Förväntat: '{expected}', Fick: '{actual}'")
+    else:
+        logger.warning(f"Ohanterad assert-event typ: {event_type}")
+
+
 async def _try_selectors_with_retries(step, frame, action, max_retries=10, delay_ms=1000):
     for attempt in range(max_retries):
         try:
@@ -305,7 +294,6 @@ async def _try_selectors_with_retries(step, frame, action, max_retries=10, delay
         except Exception as e:
             logger.debug(f"Försök {attempt+1}/{max_retries} misslyckades: {e}")
             await frame.wait_for_timeout(delay_ms)
-
     raise Exception("Inget selektoralternativ fungerade efter flera försök")
 
 
@@ -317,40 +305,32 @@ async def _try_selectors(step, frame, action):
             if not selector:
                 logger.debug(f"Hoppar över osupportad selector: {raw_selector}")
                 continue
-
             try:
                 base_locator = frame.locator(selector)
                 count = await base_locator.count()
                 if count == 0:
-                    logger.debug(f"Selector {selector} hittade inga element.")
                     continue
-
                 for i in range(count):
                     candidate = base_locator.nth(i)
                     await candidate.wait_for(state="attached", timeout=3000)
                     if await candidate.is_visible():
                         await candidate.scroll_into_view_if_needed()
                         await action(candidate)
-                        logger.debug(f"Agerade på selector: {selector} [element {i}]")
                         return
-                    else:
-                        logger.debug(f"Selector {selector} [element {i}] är inte synlig.")
             except Exception as e:
                 logger.debug(f"Misslyckades på selector {selector}: {e}")
-
     raise Exception("Ingen fungerande selector hittades")
 
 
 async def _wait_for_dom_stability(page):
     try:
         await page.wait_for_load_state("networkidle", timeout=5000)
-        await page.wait_for_function(
-            """() => {
+        await page.wait_for_function("""
+            () => {
                 const spinner = document.querySelector('.spinner, .loading, .waitCursor');
                 return !spinner || spinner.offsetParent === null;
-            }""",
-            timeout=5000
-        )
+            }
+        """, timeout=5000)
         await page.evaluate("() => new Promise(r => requestAnimationFrame(() => r()))")
         await page.wait_for_timeout(500)
     except Exception as e:
