@@ -77,7 +77,8 @@ async def run_test(recording: dict):
                     if step_type == "navigate":
                         url = step.get("url", "")
                         if url.startswith(("edge://", "chrome://", "about:")):
-                            raise Exception(f"Ogiltig eller osupportad URL: {url}")
+                            logger.warning(f"Hoppar över navigation till osupportad URL: {url}")
+                            continue  # hoppa över detta steg
                         await page.goto(url, wait_until="load", timeout=timeout)
                         await _wait_for_dom_stability(page)
 
@@ -198,7 +199,11 @@ async def run_test(recording: dict):
                     else:
                         logger.warning(f"Ohanterat stegtyp: {step_type}")
 
-                    logger.debug(f"Efter steg {i+1}: URL = {page.url}, Titel = {await page.title()}")
+                    try:
+                        title = await page.title()
+                    except Exception as e:
+                        title = f"(kunde inte hämta titel: {e})"
+                    logger.debug(f"Efter steg {i+1}: URL = {page.url}, Titel = {title}")
 
                 except Exception as step_error:
                     msg = f"Steg {i+1}/{len(recording['steps'])} ({step_type}) misslyckades: {step_error}"
