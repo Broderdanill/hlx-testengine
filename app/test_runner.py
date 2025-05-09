@@ -102,6 +102,7 @@ async def run_test(recording: dict):
                             action=lambda loc: _click_with_fallback(loc, timeout, step.get("offsetX", 0), step.get("offsetY", 0))
                         )
                         await page.wait_for_timeout(300)
+                        await _wait_for_dom_stability(page)
 
                     elif step_type == "doubleClick":
                         await _try_selectors_with_retries(
@@ -276,18 +277,32 @@ async def run_test(recording: dict):
         return result
 
 
-async def _click_with_fallback(loc, timeout, x, y):
+async def _click_with_fallback(loc, timeout, x, y, method="click", button="left"):
     try:
         await loc.hover()
         await loc.focus()
-        await loc.click(position={"x": x, "y": y}, timeout=timeout, force=True)
+        if method == "dblclick":
+            await loc.dblclick(timeout=timeout)
+        else:
+            await loc.click(position={"x": x, "y": y}, timeout=timeout, force=True, button=button)
     except Exception as click_err:
-        logger.warning(f"Vanlig click misslyckades: {click_err} – försöker hover + focus + JS-click istället.")
+        logger.warning(f"{method} misslyckades: {click_err} – försöker JS-dispatch istället.")
         try:
             await loc.hover()
-            await loc.evaluate("el => { el.focus(); el.click(); }")
+            await loc.focus()
+            await loc.evaluate("""
+                el => {
+                    const event = new MouseEvent('click', {
+                        view: window,
+                        bubbles: true,
+                        cancelable: true
+                    });
+                    el.dispatchEvent(event);
+                }
+            """)
         except Exception as eval_err:
-            raise Exception(f"Både vanlig click och JS-click med hover/focus misslyckades: {eval_err}")
+            raise Exception(f"Både {method} och JS dispatchEvent misslyckades: {eval_err}")
+
 
 
 def _normalize_selector(raw_selector: str) -> str | None:
@@ -371,7 +386,7 @@ async def _try_selectors(step, frame, action):
                 for i in range(count):
                     candidate = base_locator.nth(i)
                     await candidate.wait_for(state="attached", timeout=3000)
-                    if await candidate.is_visible():
+                    if await candidate.is_visible() and await candidate.is_enabled():  # ✅ ändrad här
                         await candidate.scroll_into_view_if_needed()
                         await action(candidate)
                         return
