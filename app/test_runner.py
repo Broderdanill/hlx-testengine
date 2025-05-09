@@ -278,13 +278,17 @@ async def run_test(recording: dict):
 
 async def _click_with_fallback(loc, timeout, x, y):
     try:
+        await loc.hover()
+        await loc.focus()
         await loc.click(position={"x": x, "y": y}, timeout=timeout, force=True)
     except Exception as click_err:
-        logger.warning(f"Vanlig click misslyckades: {click_err} – försöker JavaScript-click istället.")
+        logger.warning(f"Vanlig click misslyckades: {click_err} – försöker hover + focus + JS-click istället.")
         try:
-            await loc.evaluate("el => el.click()")
+            await loc.hover()
+            await loc.evaluate("el => { el.focus(); el.click(); }")
         except Exception as eval_err:
-            raise Exception(f"Både vanlig click och JS-eval misslyckades: {eval_err}")
+            raise Exception(f"Både vanlig click och JS-click med hover/focus misslyckades: {eval_err}")
+
 
 def _normalize_selector(raw_selector: str) -> str | None:
     if raw_selector.startswith("aria/"):
