@@ -99,11 +99,7 @@ async def run_test(recording: dict):
                         await _try_selectors_with_retries(
                             step,
                             current_frame,
-                            action=lambda loc: loc.click(
-                                position={"x": step.get("offsetX", 0), "y": step.get("offsetY", 0)},
-                                timeout=timeout,
-                                force=True
-                            )
+                            action=lambda loc: _click_with_fallback(loc, timeout, step.get("offsetX", 0), step.get("offsetY", 0))
                         )
                         await page.wait_for_timeout(300)
 
@@ -280,7 +276,15 @@ async def run_test(recording: dict):
         return result
 
 
-
+async def _click_with_fallback(loc, timeout, x, y):
+    try:
+        await loc.click(position={"x": x, "y": y}, timeout=timeout, force=True)
+    except Exception as click_err:
+        logger.warning(f"Vanlig click misslyckades: {click_err} – försöker JavaScript-click istället.")
+        try:
+            await loc.evaluate("el => el.click()")
+        except Exception as eval_err:
+            raise Exception(f"Både vanlig click och JS-eval misslyckades: {eval_err}")
 
 def _normalize_selector(raw_selector: str) -> str | None:
     if raw_selector.startswith("aria/"):
