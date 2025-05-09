@@ -245,8 +245,20 @@ async def run_test(recording: dict):
 
     finally:
         result["DurationMs"] = int((time.time() - start) * 1000)
+
+        # Försök alltid ta en skärmdump, om det inte redan gjorts
+        if result["ScreenshotBase64"] is None and page and not page.is_closed():
+            try:
+                screenshot = await page.screenshot()
+                result["ScreenshotBase64"] = base64.b64encode(screenshot).decode("utf-8")
+                result["ScreenshotMissing"] = False
+            except Exception as e:
+                logger.warning(f"Kunde inte ta skärmdump i finally: {e}")
+                result["ScreenshotMissing"] = True
+
         logger.info(f"Test klart. Status: {result['Status']}, Tid: {result['DurationMs']}ms")
         return result
+
 
 
 def _normalize_selector(raw_selector: str) -> str | None:
