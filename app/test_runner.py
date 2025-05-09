@@ -224,7 +224,6 @@ async def run_test(recording: dict):
                         result["ScreenshotMissing"] = True
                     raise step_error
 
-            await browser.close()
 
     except Exception as e:
         logger.error(f"Testet misslyckades: {e}")
@@ -256,8 +255,16 @@ async def run_test(recording: dict):
                 logger.warning(f"Kunde inte ta skärmdump i finally: {e}")
                 result["ScreenshotMissing"] = True
 
+        # STÄNG EFTER skärmdumpsförsöket
+        try:
+            if context and context.browser:  # extra säkerhetskoll
+                await context.close()
+        except Exception as e:
+            logger.warning(f"Kunde inte stänga browser: {e}")
+
         logger.info(f"Test klart. Status: {result['Status']}, Tid: {result['DurationMs']}ms")
         return result
+
 
 
 
