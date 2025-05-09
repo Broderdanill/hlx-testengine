@@ -189,7 +189,8 @@ async def run_test(recording: dict):
                         await page.screenshot(path=f"screenshot_{i}.png")
 
                     elif step_type == "close":
-                        await page.close()
+                        logger.info("Ignorerar page.close() – vi stänger efter skärmdumpen i finally.")
+
 
                     elif step_type == "assert":
                         events = step.get("assertedEvents", [])
@@ -245,24 +246,25 @@ async def run_test(recording: dict):
     finally:
         result["DurationMs"] = int((time.time() - start) * 1000)
 
-        # Försök alltid ta en skärmdump, om det inte redan gjorts
+        # Försök alltid ta en skärmdump innan vi stänger kontexten
         if result["ScreenshotBase64"] is None and page and not page.is_closed():
             try:
                 screenshot = await page.screenshot()
                 result["ScreenshotBase64"] = base64.b64encode(screenshot).decode("utf-8")
                 result["ScreenshotMissing"] = False
+                logger.debug("Skärmdump tagen i finally innan stängning.")
             except Exception as e:
                 logger.warning(f"Kunde inte ta skärmdump i finally: {e}")
                 result["ScreenshotMissing"] = True
 
-        # STÄNG EFTER skärmdumpsförsöket
+        # Nu stänger vi kontexten
         try:
-            if context and context.browser:  # extra säkerhetskoll
+            if context:
                 await context.close()
         except Exception as e:
             logger.warning(f"Kunde inte stänga browser: {e}")
 
-        logger.info(f"Test klart. Status: {result['Status']}, Tid: {result['DurationMs']}ms")
+
         return result
 
 
