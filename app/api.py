@@ -54,11 +54,14 @@ async def generate_graph(request: Request):
         if "TestName" not in df.columns:
             return JSONResponse(status_code=400, content={"error": "Ogiltig data. Kräver även TestName för vissa grafer."})
 
-        # Färgpalett med ljus bakgrund
-        colors = {"passed": "#2ecc71", "failed": "#e74c3c"}
+        # Bootstrap-liknande färgpalett
+        colors = {
+            "passed": "#198754",  # Bootstrap's green
+            "failed": "#dc3545"   # Bootstrap's red
+        }
 
         images = []
-        plt.style.use('default')  # Ljusstil
+        plt.style.use('default')  # Ljus bakgrund
 
         def save_fig_to_base64(fig):
             buf = BytesIO()
@@ -83,21 +86,23 @@ async def generate_graph(request: Request):
                 linewidth=0.8
             )
 
-            totals = df_grouped.sum(axis=1)
+            ax.grid(True, which='major', axis='y', linestyle='--', alpha=0.7)
+
             for i, (index, row) in enumerate(df_grouped.iterrows()):
                 passed = row.get("passed", 0)
                 failed = row.get("failed", 0)
                 total = passed + failed
                 if total > 0:
-                    ax.text(i, passed / 2, f"{(passed / total * 100):.0f}%", ha='center', va='center', color='white', fontsize=11)
+                    if passed > 0:
+                        ax.text(i, passed * 0.5, f"{(passed / total * 100):.0f}%", ha='center', va='center', color='white', fontsize=11)
                     if failed > 0:
-                        ax.text(i, passed + failed / 2, f"{(failed / total * 100):.0f}%", ha='center', va='center', color='white', fontsize=11)
+                        ax.text(i, passed + failed * 0.5, f"{(failed / total * 100):.0f}%", ha='center', va='center', color='white', fontsize=11)
 
             ax.set_title(title, fontsize=17)
             ax.set_ylabel("Antal testfall")
             ax.set_xlabel(xlabel)
-            ax.tick_params(axis='x')
-            ax.tick_params(axis='y')
+            ax.tick_params(axis='x', labelsize=10)
+            ax.tick_params(axis='y', labelsize=10)
             plt.xticks(rotation=45, ha="right")
             plt.tight_layout()
 
@@ -154,6 +159,7 @@ async def generate_graph(request: Request):
     except Exception as e:
         logger.exception("Fel vid generering av grafer")
         return JSONResponse(status_code=500, content={"error": str(e)})
+
 
 
 
