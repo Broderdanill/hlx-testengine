@@ -73,6 +73,7 @@ async def generate_graph(request: Request):
             return img_str
 
         def plot_bar_grouped(df_grouped, title, xlabel):
+            df_grouped = df_grouped.reindex(columns=["failed", "passed"], fill_value=0)
             fig, ax = plt.subplots(figsize=(12, 7))
             color_keys = df_grouped.columns.tolist()
             bar_colors = [colors.get(x, "#999999") for x in color_keys]
@@ -92,11 +93,21 @@ async def generate_graph(request: Request):
                 passed = row.get("passed", 0)
                 failed = row.get("failed", 0)
                 total = passed + failed
+
                 if total > 0:
-                    if passed > 0:
-                        ax.text(i, passed * 0.5, f"{(passed / total * 100):.0f}%", ha='center', va='center', color='white', fontsize=11)
+                    # Show failed% first (nederst)
                     if failed > 0:
-                        ax.text(i, passed + failed * 0.5, f"{(failed / total * 100):.0f}%", ha='center', va='center', color='white', fontsize=11)
+                        percent_failed = (failed / total) * 100
+                        ax.text(i, failed * 0.5, f"{percent_failed:.0f}%", ha='center', va='center',
+                                color='white', fontsize=12, fontweight='bold',
+                                path_effects=[matplotlib.patheffects.withStroke(linewidth=2, foreground='black')])
+
+                    # Then passed%
+                    if passed > 0:
+                        percent_passed = (passed / total) * 100
+                        ax.text(i, failed + passed * 0.5, f"{percent_passed:.0f}%", ha='center', va='center',
+                                color='white', fontsize=12, fontweight='bold',
+                                path_effects=[matplotlib.patheffects.withStroke(linewidth=2, foreground='black')])
 
             ax.set_title(title, fontsize=17)
             ax.set_ylabel("Antal testfall")
@@ -109,18 +120,34 @@ async def generate_graph(request: Request):
             return save_fig_to_base64(fig)
 
         def plot_pie(summary_series, title):
+            import matplotlib.patheffects as path_effects
+
             fig, ax = plt.subplots(figsize=(8, 8))
-            summary_series.plot.pie(
-                labels=[f"{label} ({count})" for label, count in summary_series.items()],
-                colors=[colors.get(x, "#999999") for x in summary_series.index],
+
+            # Se till att ordningen är konsekvent
+            labels = summary_series.index.tolist()
+            values = summary_series.values.tolist()
+            pie_colors = [colors.get(label, "#999999") for label in labels]
+
+            wedges, texts, autotexts = ax.pie(
+                values,
+                labels=[f"{label} ({value})" for label, value in zip(labels, values)],
+                colors=pie_colors,
                 autopct="%1.1f%%",
                 startangle=90,
-                textprops={'fontsize': 11},
-                ax=ax
+                textprops={'fontsize': 12, 'color': 'white', 'weight': 'bold'}
             )
+
+            # Lägg till svart kontur runt procenttexten för läsbarhet
+            for text in autotexts:
+                text.set_path_effects([path_effects.withStroke(linewidth=2, foreground='black')])
+
             ax.set_title(title, fontsize=16)
             ax.set_ylabel("")
+            ax.axis('equal')  # För rund cirkel
+
             return save_fig_to_base64(fig)
+
 
         # --- Grafer ---
         graph1 = plot_bar_grouped(
