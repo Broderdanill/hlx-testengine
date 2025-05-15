@@ -8,9 +8,11 @@ from bmc_client import get_token, post_result
 import os
 import logging
 import matplotlib.pyplot as plt
+from matplotlib import patheffects as path_effects
 import pandas as pd
 import base64
 
+# Logging
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
 logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
@@ -18,11 +20,12 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# FastAPI setup
 api_router = APIRouter()
 queue = asyncio.Queue()
 current_test: Optional[dict] = None
 
-
+# Routes
 @api_router.post("/run-test")
 async def run_test_endpoint(request: Request):
     data = await request.json()
@@ -56,12 +59,16 @@ async def generate_graph(request: Request):
 
         # Bootstrap-liknande färgpalett
         colors = {
-            "passed": "#198754",  # Bootstrap's green
-            "failed": "#dc3545"   # Bootstrap's red
+            "passed": "#198754",  # Bootstrap green
+            "failed": "#dc3545"   # Bootstrap red
         }
 
-        images = []
-        plt.style.use('default')  # Ljus bakgrund
+        plt.style.use('default')
+        plt.rcParams.update({
+            'font.size': 12,
+            'axes.titlesize': 17,
+            'axes.labelsize': 13
+        })
 
         def save_fig_to_base64(fig):
             buf = BytesIO()
@@ -75,8 +82,7 @@ async def generate_graph(request: Request):
         def plot_bar_grouped(df_grouped, title, xlabel):
             df_grouped = df_grouped.reindex(columns=["failed", "passed"], fill_value=0)
             fig, ax = plt.subplots(figsize=(12, 7))
-            color_keys = df_grouped.columns.tolist()
-            bar_colors = [colors.get(x, "#999999") for x in color_keys]
+            bar_colors = [colors.get(x, "#999999") for x in df_grouped.columns]
 
             df_grouped.plot(
                 kind="bar",
@@ -95,21 +101,19 @@ async def generate_graph(request: Request):
                 total = passed + failed
 
                 if total > 0:
-                    # Show failed% first (nederst)
                     if failed > 0:
                         percent_failed = (failed / total) * 100
                         ax.text(i, failed * 0.5, f"{percent_failed:.0f}%", ha='center', va='center',
                                 color='white', fontsize=12, fontweight='bold',
-                                path_effects=[matplotlib.patheffects.withStroke(linewidth=2, foreground='black')])
+                                path_effects=[path_effects.withStroke(linewidth=2, foreground='black')])
 
-                    # Then passed%
                     if passed > 0:
                         percent_passed = (passed / total) * 100
                         ax.text(i, failed + passed * 0.5, f"{percent_passed:.0f}%", ha='center', va='center',
                                 color='white', fontsize=12, fontweight='bold',
-                                path_effects=[matplotlib.patheffects.withStroke(linewidth=2, foreground='black')])
+                                path_effects=[path_effects.withStroke(linewidth=2, foreground='black')])
 
-            ax.set_title(title, fontsize=17)
+            ax.set_title(title)
             ax.set_ylabel("Antal testfall")
             ax.set_xlabel(xlabel)
             ax.tick_params(axis='x', labelsize=10)
@@ -120,36 +124,31 @@ async def generate_graph(request: Request):
             return save_fig_to_base64(fig)
 
         def plot_pie(summary_series, title):
-            import matplotlib.patheffects as path_effects
-
             fig, ax = plt.subplots(figsize=(8, 8))
 
-            # Se till att ordningen är konsekvent
             labels = summary_series.index.tolist()
             values = summary_series.values.tolist()
             pie_colors = [colors.get(label, "#999999") for label in labels]
 
             wedges, texts, autotexts = ax.pie(
                 values,
-                labels=[f"{label} ({value})" for label, value in zip(labels, values)],
+                labels=[f"{label.title()} ({value})" for label, value in zip(labels, values)],
                 colors=pie_colors,
                 autopct="%1.1f%%",
                 startangle=90,
                 textprops={'fontsize': 12, 'color': 'white', 'weight': 'bold'}
             )
 
-            # Lägg till svart kontur runt procenttexten för läsbarhet
             for text in autotexts:
                 text.set_path_effects([path_effects.withStroke(linewidth=2, foreground='black')])
 
-            ax.set_title(title, fontsize=16)
+            ax.set_title(title)
             ax.set_ylabel("")
-            ax.axis('equal')  # För rund cirkel
+            ax.axis('equal')
 
             return save_fig_to_base64(fig)
 
-
-        # --- Grafer ---
+        # Grafer
         graph1 = plot_bar_grouped(
             df.groupby(["SuiteTitle", "Status"]).size().unstack(fill_value=0),
             "Testresultat per SuiteTitle",
@@ -188,9 +187,7 @@ async def generate_graph(request: Request):
         return JSONResponse(status_code=500, content={"error": str(e)})
 
 
-
-
-
+# Worker
 async def worker():
     global current_test
     while True:
