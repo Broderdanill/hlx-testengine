@@ -9,5 +9,5 @@ The tests will be triggered from a BMC Helix Innovation Studio application and t
 podman build -t hlx-testengine -f Containerfile .
 
 # Running with podman play kube
-podman play kube kube.yaml
+podman play kube hlx-testengine-play.yaml
 

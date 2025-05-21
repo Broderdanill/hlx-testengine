@@ -1,5 +1,5 @@
 from playwright.async_api import async_playwright
-import base64, time, traceback
+import base64, time, traceback, uuid
 from datetime import datetime
 from logging import getLogger
 
@@ -33,7 +33,7 @@ async def run_test(recording: dict):
     try:
         async with async_playwright() as p:
             browser = await p.chromium.launch_persistent_context(
-                user_data_dir="/tmp/profile",
+                user_data_dir=f"/tmp/profile_{uuid.uuid4()}",
                 executable_path="/usr/bin/microsoft-edge-stable",
                 headless=True,
                 args=[
