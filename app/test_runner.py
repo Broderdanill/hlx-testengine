@@ -3,7 +3,16 @@ import base64, time, traceback
 from datetime import datetime
 from logging import getLogger
 
-logger = getLogger(__name__)
+import contextvars
+
+test_run_id_var = contextvars.ContextVar("test_run_id", default="UNKNOWN")
+
+class ContextLogAdapter(logging.LoggerAdapter):
+    def process(self, msg, kwargs):
+        test_run_id = test_run_id_var.get()
+        return f"[TestRunId: {test_run_id}] - {msg}", kwargs
+
+logger = ContextLogAdapter(logging.getLogger(__name__), {})
 
 DEFAULT_TIMEOUTS = {
     "navigate": 20000,

@@ -18,7 +18,16 @@ logging.basicConfig(
     format="%(asctime)s [%(levelname)s] %(message)s",
     level=getattr(logging, log_level, logging.INFO)
 )
-logger = logging.getLogger(__name__)
+import contextvars
+
+test_run_id_var = contextvars.ContextVar("test_run_id", default="UNKNOWN")
+
+class ContextLogAdapter(logging.LoggerAdapter):
+    def process(self, msg, kwargs):
+        test_run_id = test_run_id_var.get()
+        return f"[TestRunId: {test_run_id}] - {msg}", kwargs
+
+logger = ContextLogAdapter(logging.getLogger(__name__), {})
 
 # FastAPI setup
 api_router = APIRouter()
@@ -230,6 +239,7 @@ MAX_PARALLEL = int(os.getenv("MAX_PARALLEL", "2"))
 semaphore = asyncio.Semaphore(MAX_PARALLEL)
 
 async def run_wrapped_test(data):
+    test_run_id_var.set(data.get("TestRunId", "UNKNOWN"))
     global current_test
     await semaphore.acquire()
     try:
