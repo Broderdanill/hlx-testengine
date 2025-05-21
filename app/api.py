@@ -11,6 +11,7 @@ import matplotlib.pyplot as plt
 from matplotlib import patheffects as path_effects
 import pandas as pd
 import base64
+from test_runner import test_run_id_var
 
 # Logging
 log_level = os.getenv("LOG_LEVEL", "INFO").upper()
@@ -19,8 +20,6 @@ logging.basicConfig(
     level=getattr(logging, log_level, logging.INFO)
 )
 import contextvars
-
-test_run_id_var = contextvars.ContextVar("test_run_id", default="UNKNOWN")
 
 class ContextLogAdapter(logging.LoggerAdapter):
     def process(self, msg, kwargs):

@@ -6,6 +6,7 @@ from logging import getLogger
 import contextvars
 
 test_run_id_var = contextvars.ContextVar("test_run_id", default="UNKNOWN")
+__all__ = ["run_test", "test_run_id_var"]
 
 class ContextLogAdapter(logging.LoggerAdapter):
     def process(self, msg, kwargs):
