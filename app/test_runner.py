@@ -28,11 +28,14 @@ async def run_test(recording: dict):
     }
 
     start = time.time()
+    context = None
+    browser = None
     page = None
 
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch(
+            browser = await p.chromium.launch_persistent_context(
+                user_data_dir="/tmp/profile",
                 executable_path="/usr/bin/microsoft-edge-stable",
                 headless=True,
                 args=[
@@ -42,8 +45,8 @@ async def run_test(recording: dict):
                     "--ignore-certificate-errors"
                 ]
             )
-            context = await browser.new_context()
-            page = await context.new_page()
+            context = browser  # eftersom launch_persistent_context returnerar Context-objekt
+            page = context.pages[0] if context.pages else await context.new_page()
 
             page.on("console", lambda msg: logger.debug(f"Console [{msg.type}]: {msg.text}"))
             page.on("pageerror", lambda exc: logger.debug(f"Ignorerat page error: {exc}"))
@@ -266,6 +269,7 @@ async def run_test(recording: dict):
             logger.warning(f"Kunde inte ta skärmdump: {ss_err}")
             result["ScreenshotMissing"] = True
 
+    
     finally:
         result["DurationMs"] = int((time.time() - start) * 1000)
         try:
