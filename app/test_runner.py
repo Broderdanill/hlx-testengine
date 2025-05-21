@@ -1,5 +1,6 @@
 from playwright.async_api import async_playwright
 import base64, time, traceback
+import logging
 from datetime import datetime
 from logging import getLogger
 
