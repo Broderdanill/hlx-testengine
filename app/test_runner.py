@@ -32,8 +32,7 @@ async def run_test(recording: dict):
 
     try:
         async with async_playwright() as p:
-            browser = await p.chromium.launch_persistent_context(
-                user_data_dir="/tmp/profile",
+            browser = await p.chromium.launch(
                 executable_path="/usr/bin/microsoft-edge-stable",
                 headless=True,
                 args=[
@@ -273,8 +272,14 @@ async def run_test(recording: dict):
             if context:
                 await context.close()
         except Exception as e:
+            logger.warning(f"Kunde inte stänga context: {e}")
+        try:
+            if browser:
+                await browser.close()
+        except Exception as e:
             logger.warning(f"Kunde inte stänga browser: {e}")
         return result
+
 
 
 async def _click_with_fallback(loc, timeout, x, y, method="click", button="left"):
