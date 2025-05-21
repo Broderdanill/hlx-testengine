@@ -26,12 +26,20 @@ queue = asyncio.Queue()
 current_test: Optional[dict] = None
 
 # Routes
+
 @api_router.post("/run-test")
 async def run_test_endpoint(request: Request):
     data = await request.json()
     logger.info(f"Mottog testförfrågan: {data.get('TestName')} (RunID: {data.get('TestRunId')})")
-    await queue.put(data)
-    return {"message": "Testet har lagts i kön.", "position": queue.qsize()}
+
+    if semaphore.locked():
+        logger.info("Semafor är full – lägger testet i kön.")
+        await queue.put(data)
+        return {"message": "Semafor full – testet har lagts i kön.", "position": queue.qsize()}
+    else:
+        logger.info("Startar test direkt.")
+        asyncio.create_task(run_wrapped_test(data))
+        return {"message": "Testet har startats direkt."}
 
 
 @api_router.get("/queue-status")
@@ -217,6 +225,44 @@ async def worker():
             queue.task_done()
 
 
+
+MAX_PARALLEL = int(os.getenv("MAX_PARALLEL", "2"))
+semaphore = asyncio.Semaphore(MAX_PARALLEL)
+
+async def run_wrapped_test(data):
+    global current_test
+    await semaphore.acquire()
+    try:
+        current_test = {
+            "TestName": data.get("TestName", ""),
+            "TestRunId": data.get("TestRunId", "")
+        }
+        logger.info(f"Kör test: {current_test['TestName']}")
+        result = await run_test(data.get("Recording"))
+        result.update({
+            "TestName": data.get("TestName"),
+            "SuiteTitle": data.get("SuiteTitle", "N/A"),
+            "TestRunId": data.get("TestRunId")
+        })
+        token = await get_token()
+        await post_result(result, token)
+    except Exception as e:
+        logger.exception(f"Fel vid testkörning eller rapportering: {e}")
+    finally:
+        logger.info(f"Färdig med test: {current_test['TestName']}")
+        current_test = None
+        semaphore.release()
+
+async def queue_worker():
+    while True:
+        data = await queue.get()
+        logger.info("Köhanterare försöker starta test...")
+        while semaphore.locked():
+            await asyncio.sleep(0.1)
+        asyncio.create_task(run_wrapped_test(data))
+        queue.task_done()
+
+
 async def start_worker():
-    logger.info("Startar worker-loop...")
-    asyncio.create_task(worker())
+    logger.info("Startar köhanterare...")
+    asyncio.create_task(queue_worker())
