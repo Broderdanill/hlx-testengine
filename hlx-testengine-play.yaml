@@ -20,5 +20,7 @@ spec:
           value: "http://arserver:8008/api/jwt/login"
         - name: LOG_LEVEL
           value: "DEBUG"
+        - name: MAX_PARALLEL
+          value: 3
   networks:
     - name: helix

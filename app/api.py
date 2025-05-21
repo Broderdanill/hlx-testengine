@@ -26,19 +26,12 @@ queue = asyncio.Queue()
 current_test: Optional[dict] = None
 
 # Routes
-
 @api_router.post("/run-test")
 async def run_test_endpoint(request: Request):
     data = await request.json()
-    parallel = int(data.get("parallel", 1))
-    logger.info(f"Mottog testförfrågan: {data.get('TestName')} (RunID: {data.get('TestRunId')}) parallellt: {parallel}")
-
-    for i in range(parallel):
-        asyncio.create_task(run_test(data.copy()))
-
-    return {
-        "message": f"Startade {parallel} tester parallellt."
-    }
+    logger.info(f"Mottog testförfrågan: {data.get('TestName')} (RunID: {data.get('TestRunId')})")
+    await queue.put(data)
+    return {"message": "Testet har lagts i kön.", "position": queue.qsize()}
 
 
 @api_router.get("/queue-status")
