@@ -3,7 +3,6 @@ import base64, time, traceback
 import logging
 from datetime import datetime
 from logging import getLogger
-
 import contextvars
 
 test_run_id_var = contextvars.ContextVar("test_run_id", default="UNKNOWN")
@@ -34,7 +33,7 @@ async def run_test(recording: dict):
         "ScreenshotMissing": True,
         "DurationMs": 0,
         "RunTime": datetime.utcnow().isoformat() + "Z",
-        "FailedStep": None  # Lägg till detta
+        "FailedStep": None
     }
 
     start = time.time()
@@ -45,7 +44,6 @@ async def run_test(recording: dict):
     try:
         async with async_playwright() as p:
             browser = await p.chromium.launch(
-                user_data_dir="/tmp/profile",
                 executable_path="/usr/bin/microsoft-edge-stable",
                 headless=True,
                 args=[
@@ -90,7 +88,7 @@ async def run_test(recording: dict):
                         url = step.get("url", "")
                         if url.startswith(("edge://", "chrome://", "about:")):
                             logger.warning(f"Hoppar över navigation till osupportad URL: {url}")
-                            continue  # hoppa över detta steg
+                            continue
                         await page.goto(url, wait_until="load", timeout=timeout)
                         await _wait_for_dom_stability(page)
 
@@ -217,23 +215,17 @@ async def run_test(recording: dict):
                                 logger.info("Sidan stängd.")
                         except Exception as e:
                             logger.warning(f"Misslyckades stänga sidan: {e}")
-
-
-
                     elif step_type == "assert":
                         events = step.get("assertedEvents", [])
                         for event in events:
                             await _handle_assert_event(event, current_frame, page)
-
                     else:
                         logger.warning(f"Ohanterat stegtyp: {step_type}")
-
                     try:
                         title = await page.title()
                     except Exception as e:
                         title = f"(kunde inte hämta titel: {e})"
                     logger.debug(f"Efter steg {i+1}: URL = {page.url}, Titel = {title}")
-
                 except Exception as step_error:
                     msg = f"Steg {i+1}/{len(recording['steps'])} ({step_type}) misslyckades: {step_error}"
                     logger.error(msg)
@@ -261,7 +253,6 @@ async def run_test(recording: dict):
                 except Exception as e:
                     logger.warning(f"Kunde inte ta skärmdump efter sista steg: {e}")
                     result["ScreenshotMissing"] = True
-
     except Exception as e:
         logger.error(f"Testet misslyckades: {e}")
         result["Status"] = "failed"
@@ -278,8 +269,6 @@ async def run_test(recording: dict):
         except Exception as ss_err:
             logger.warning(f"Kunde inte ta skärmdump: {ss_err}")
             result["ScreenshotMissing"] = True
-
-    
     finally:
         result["DurationMs"] = int((time.time() - start) * 1000)
         try:
@@ -293,8 +282,7 @@ async def run_test(recording: dict):
         except Exception as e:
             logger.warning(f"Kunde inte stänga browser: {e}")
         return result
-
-
+    
 
 async def _click_with_fallback(loc, timeout, x, y, method="click", button="left"):
     try:
