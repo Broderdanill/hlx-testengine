@@ -237,7 +237,7 @@ async def worker():
 MAX_PARALLEL = int(os.getenv("MAX_PARALLEL", "2"))
 semaphore = asyncio.Semaphore(MAX_PARALLEL)
 
-async def run_wrapped_test(data):
+async def run_wrapped_test(data, mark_done: bool = False):
     test_run_id_var.set(data.get("TestRunId", "UNKNOWN"))
     global current_test
     await semaphore.acquire()
@@ -261,6 +261,9 @@ async def run_wrapped_test(data):
         logger.info(f"Färdig med test: {current_test['TestName']}")
         current_test = None
         semaphore.release()
+        if mark_done:
+            queue.task_done()
+
 
 async def queue_worker():
     while True:
@@ -268,7 +271,7 @@ async def queue_worker():
         logger.info("Köhanterare försöker starta test...")
         while semaphore.locked():
             await asyncio.sleep(0.1)
-        asyncio.create_task(run_wrapped_test(data))
+        asyncio.create_task(run_wrapped_test(data, mark_done=True))
         queue.task_done()
 
 
