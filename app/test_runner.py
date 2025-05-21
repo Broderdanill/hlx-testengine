@@ -1,5 +1,5 @@
 from playwright.async_api import async_playwright
-import base64, time, traceback, uuid, os
+import base64, time, traceback
 from datetime import datetime
 from logging import getLogger
 
@@ -33,7 +33,7 @@ async def run_test(recording: dict):
     try:
         async with async_playwright() as p:
             browser = await p.chromium.launch_persistent_context(
-                user_data_dir=f"/tmp/profile_{uuid.uuid4()}",
+                user_data_dir="/tmp/profile",
                 executable_path="/usr/bin/microsoft-edge-stable",
                 headless=True,
                 args=[
@@ -43,8 +43,8 @@ async def run_test(recording: dict):
                     "--ignore-certificate-errors"
                 ]
             )
-            context = browser  # eftersom launch_persistent_context returnerar Context-objekt
-            page = context.pages[0] if context.pages else await context.new_page()
+            context = await browser.new_context()
+            page = await context.new_page()
 
             page.on("console", lambda msg: logger.debug(f"Console [{msg.type}]: {msg.text}"))
             page.on("pageerror", lambda exc: logger.debug(f"Ignorerat page error: {exc}"))
